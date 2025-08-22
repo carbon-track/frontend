@@ -1,0 +1,1 @@
+import{j as e}from"./index-BKjOfV5l.js";function t(){return e.jsx("div",{className:"min-h-screen flex items-center justify-center",children:e.jsxs("div",{className:"text-center",children:[e.jsx("h1",{className:"text-4xl font-bold mb-2",children:"404"}),e.jsx("p",{className:"text-gray-600",children:"页面未找到"})]})})}export{t as default};

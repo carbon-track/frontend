@@ -1,0 +1,353 @@
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, UserPlus, School } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { authAPI, validationRules } from '../../lib/auth';
+import api from '../../lib/api';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
+import { Alert, AlertDescription } from '../ui/Alert';
+
+export function RegisterForm() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [schools, setSchools] = useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm();
+
+  const password = watch('password');
+
+  // 获取学校列表
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const response = await api.get('/schools');
+        if (response.data.success) {
+          setSchools(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch schools:', error);
+      }
+    };
+
+    fetchSchools();
+  }, []);
+
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await authAPI.register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        confirm_password: data.confirmPassword,
+        real_name: data.realName,
+        school_id: parseInt(data.schoolId),
+        class_name: data.className,
+        turnstile_token: data.turnstile_token
+      });
+
+      if (result.success) {
+        setSuccess(t('auth.registerSuccess'));
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(result.message || t('auth.registerFailed'));
+      }
+    } catch (err) {
+      setError(err.message || t('auth.registerFailed'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
+            <UserPlus className="h-6 w-6 text-green-600" />
+          </div>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            {t('auth.createAccount')}
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            {t('auth.orSignInPrompt')}{' '}
+            <Link
+              to="/auth/login"
+              className="font-medium text-green-600 hover:text-green-500"
+            >
+              {t('auth.signIn')}
+            </Link>
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('auth.signUp')}</CardTitle>
+            <CardDescription>
+              {t('auth.fillInformation')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert variant="success">
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="grid grid-cols-1 gap-6">
+                {/* 用户名 */}
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                    {t('auth.username')}
+                  </label>
+                  <div className="mt-1">
+                    <Input
+                      id="username"
+                      type="text"
+                      autoComplete="username"
+                      placeholder={t('auth.usernamePlaceholder')}
+                      error={errors.username}
+                      {...register('username', validationRules.username)}
+                    />
+                    {errors.username && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.username.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 邮箱 */}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    {t('auth.email')}
+                  </label>
+                  <div className="mt-1">
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder={t('auth.emailPlaceholder')}
+                      error={errors.email}
+                      {...register('email', validationRules.email)}
+                    />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 真实姓名 */}
+                <div>
+                  <label htmlFor="realName" className="block text-sm font-medium text-gray-700">
+                    {t('auth.realName')}
+                  </label>
+                  <div className="mt-1">
+                    <Input
+                      id="realName"
+                      type="text"
+                      autoComplete="name"
+                      placeholder={t('auth.realNamePlaceholder')}
+                      error={errors.realName}
+                      {...register('realName', validationRules.realName)}
+                    />
+                    {errors.realName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.realName.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 学校 */}
+                <div>
+                  <label htmlFor="schoolId" className="block text-sm font-medium text-gray-700">
+                    {t('auth.school')}
+                  </label>
+                  <div className="mt-1">
+                    <select
+                      id="schoolId"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                      {...register('schoolId', { required: t('auth.schoolRequired') })}
+                    >
+                      <option value="">{t('auth.selectSchool')}</option>
+                      {schools.map((school) => (
+                        <option key={school.id} value={school.id}>
+                          {school.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.schoolId && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.schoolId.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 班级 */}
+                <div>
+                  <label htmlFor="className" className="block text-sm font-medium text-gray-700">
+                    {t('auth.className')}
+                  </label>
+                  <div className="mt-1">
+                    <Input
+                      id="className"
+                      type="text"
+                      placeholder={t('auth.classNamePlaceholder')}
+                      error={errors.className}
+                      {...register('className', validationRules.className)}
+                    />
+                    {errors.className && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.className.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 密码 */}
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    {t('auth.password')}
+                  </label>
+                  <div className="mt-1 relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      placeholder={t('auth.passwordPlaceholder')}
+                      error={errors.password}
+                      {...register('password', validationRules.password)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 确认密码 */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                    {t('auth.confirmPassword')}
+                  </label>
+                  <div className="mt-1 relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      placeholder={t('auth.confirmPasswordPlaceholder')}
+                      error={errors.confirmPassword}
+                      {...register('confirmPassword', {
+                        required: t('auth.confirmPasswordRequired'),
+                        validate: value => value === password || t('auth.passwordMismatch')
+                      })}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                    {errors.confirmPassword && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.confirmPassword.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Turnstile验证码占位 */}
+              <div id="turnstile-container" className="flex justify-center">
+                {/* Turnstile widget will be rendered here */}
+              </div>
+
+              <div>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  loading={isLoading}
+                  disabled={isLoading}
+                >
+                  {isLoading ? t('auth.registering') : t('auth.signUp')}
+                </Button>
+              </div>
+
+              <div className="text-sm text-gray-600">
+                <p>
+                  {t('auth.agreementText')}{' '}
+                  <Link to="/terms" className="text-green-600 hover:text-green-500">
+                    {t('auth.termsOfService')}
+                  </Link>{' '}
+                  {t('auth.and')}{' '}
+                  <Link to="/privacy" className="text-green-600 hover:text-green-500">
+                    {t('auth.privacyPolicy')}
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            {t('auth.haveAccount')}{' '}
+            <Link
+              to="/login"
+              className="font-medium text-green-600 hover:text-green-500"
+            >
+              {t('auth.signInNow')}
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+

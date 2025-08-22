@@ -1,0 +1,137 @@
+import React from 'react';
+import { X, CalendarDays, Info, Image as ImageIcon, MessageSquare, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { format } from 'date-fns';
+import { Button } from '../ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
+
+export function ActivityDetailModal({ activity, isOpen, onClose }) {
+  const { t, formatNumber } = useTranslation();
+
+  if (!isOpen || !activity) return null;
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'pending':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <Clock className="h-3 w-3 mr-1" /> {t('activities.status.pending')}
+          </span>
+        );
+      case 'approved':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" /> {t('activities.status.approved')}
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <XCircle className="h-3 w-3 mr-1" /> {t('activities.status.rejected')}
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <Card className="border-0 shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div>
+              <CardTitle className="text-xl">{t('activities.detail.title')}</CardTitle>
+              <CardDescription>{t('activities.detail.subtitle')}</CardDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* 基本信息 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('activities.table.activity')}</p>
+                <p className="text-lg font-semibold text-gray-900">{activity.activity_name}</p>
+                <p className="text-sm text-gray-600">{t(`activities.categories.${activity.activity_category}`, activity.activity_category)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('activities.table.status')}</p>
+                {getStatusBadge(activity.status)}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('activities.table.date')}</p>
+                <p className="text-gray-900">{format(new Date(activity.activity_date), 'yyyy-MM-dd')}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('activities.table.data')}</p>
+                <p className="text-gray-900">{formatNumber(activity.data_value)} {t(`units.${activity.activity_unit}`, activity.activity_unit)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('activities.table.carbonSaved')}</p>
+                <p className="text-green-600 font-semibold">{formatNumber(activity.carbon_saved)} kg CO2e</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('activities.table.points')}</p>
+                <p className="text-green-600 font-semibold">+{formatNumber(activity.points_earned)} {t('common.points')}</p>
+              </div>
+            </div>
+
+            {/* 备注 */}
+            {activity.notes && (
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
+                  <MessageSquare className="h-4 w-4 mr-2" />{t('activities.detail.notes')}
+                </h4>
+                <p className="text-gray-700 bg-gray-50 p-3 rounded-md">{activity.notes}</p>
+              </div>
+            )}
+
+            {/* 审核信息 */}
+            {activity.status === 'rejected' && activity.admin_notes && (
+              <div>
+                <h4 className="text-md font-semibold text-red-700 mb-2 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-2" />{t('activities.detail.rejectionReason')}
+                </h4>
+                <p className="text-red-700 bg-red-50 p-3 rounded-md">{activity.admin_notes}</p>
+              </div>
+            )}
+
+            {/* 证明图片 */}
+            {activity.proof_images && activity.proof_images.length > 0 && (
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
+                  <ImageIcon className="h-4 w-4 mr-2" />{t('activities.detail.proofImages')}
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {activity.proof_images.map((image, index) => (
+                    <a key={index} href={image} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={image}
+                        alt={`${activity.activity_name} proof ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg shadow-sm"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 操作按钮 */}
+            <div className="flex justify-end pt-4">
+              <Button onClick={onClose}>{t('common.close')}</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
