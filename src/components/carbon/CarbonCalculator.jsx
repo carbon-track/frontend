@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, ArrowLeft, Leaf } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import api from '../../lib/api';
+import { carbonAPI } from '../../lib/api';
 import { ActivitySelector } from './ActivitySelector';
 import { DataInputForm } from './DataInputForm';
 import { Button } from '../ui/Button';
@@ -40,7 +40,7 @@ export function CarbonCalculator() {
     setError('');
 
     try {
-      const response = await api.post('/carbon-track/calculate', {
+      const response = await carbonAPI.calculate({
         activity_id: selectedActivity.uuid,
         data: data
       });
@@ -63,7 +63,7 @@ export function CarbonCalculator() {
     setError('');
 
     try {
-      const response = await api.post('/carbon-track/record', formData);
+      const response = await carbonAPI.recordActivity(formData);
 
       if (response.data.success) {
         setSubmitResult(response.data.data);

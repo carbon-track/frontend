@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
-import api from '../../lib/api';
+import { adminAPI } from '../../lib/api';
 import { Loader2, CheckCircle, XCircle, Eye, Search, Filter } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -24,12 +24,12 @@ export function ExchangeManagement() {
 
   const { data, isLoading, error, isFetching } = useQuery(
     ['adminExchanges', filters],
-    () => api.get('/admin/exchanges', { params: filters }),
+    () => adminAPI.getExchanges(filters),
     { keepPreviousData: true }
   );
 
   const updateExchangeStatusMutation = useMutation(
-    ({ id, status, admin_notes }) => api.put(`/admin/exchanges/${id}/status`, { status, admin_notes }),
+    ({ id, status, admin_notes }) => adminAPI.updateExchangeStatus(id, { status, admin_notes }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('adminExchanges');

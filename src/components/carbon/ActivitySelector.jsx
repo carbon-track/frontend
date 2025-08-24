@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Leaf, Car, ShoppingBag, Recycle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import api from '../../lib/api';
+import { carbonAPI } from '../../lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -33,7 +33,7 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/carbon-activities');
+        const response = await carbonAPI.getActivities();
         
         if (response.data.success) {
           const activitiesData = response.data.data;

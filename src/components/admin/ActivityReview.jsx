@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
-import api from '../../lib/api';
+import { adminAPI } from '../../lib/api';
 import { Loader2, CheckCircle, XCircle, Eye, Search, Filter, MessageSquare } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -26,12 +26,12 @@ export function ActivityReview() {
 
   const { data, isLoading, error, isFetching } = useQuery(
     ['adminActivities', filters],
-    () => api.get('/admin/activities', { params: filters }),
+    () => adminAPI.getActivities(filters),
     { keepPreviousData: true }
   );
 
   const reviewActivityMutation = useMutation(
-    ({ id, status, admin_notes }) => api.put(`/admin/activities/${id}/review`, { status, admin_notes }),
+    ({ id, status, admin_notes }) => adminAPI.reviewActivity(id, { status, admin_notes }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('adminActivities');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Leaf, Award, TrendingUp, Users } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import api from '../../lib/api';
+import { carbonAPI } from '../../lib/api';
 import { checkAuthStatus } from '../../lib/auth';
 import { StatsCard } from './StatsCard';
 import { ActivityChart } from './ActivityChart';
@@ -35,9 +35,9 @@ export function Dashboard() {
       
       // 并行获取仪表板数据
       const [statsResponse, chartResponse, activitiesResponse] = await Promise.all([
-        api.get('/users/me/stats'),
-        api.get('/users/me/chart-data?period=30'),
-        api.get('/users/me/activities?limit=10')
+        carbonAPI.getUserStats(),
+        carbonAPI.getChartData({ period: 30 }),
+        carbonAPI.getRecentActivities({ limit: 10 })
       ]);
 
       if (statsResponse.data.success) {
