@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus, School } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { authAPI, validationRules } from '../../lib/auth';
-import api from '../../lib/api';
+import { schoolAPI } from '../../lib/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
@@ -33,7 +33,7 @@ export function RegisterForm() {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await api.get('/schools');
+        const response = await schoolAPI.getSchools();
         if (response.data.success) {
           setSchools(response.data.data);
         }

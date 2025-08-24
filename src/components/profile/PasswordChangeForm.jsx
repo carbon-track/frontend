@@ -12,7 +12,7 @@ export function PasswordChangeForm() {
 
   const onSubmit = async (data) => {
     try {
-      await api.post('/users/change-password', data);
+      await api.post('/auth/change-password', data);
       toast.success(t('profile.passwordChangeSuccess'));
       reset();
     } catch (error) {

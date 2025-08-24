@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
-import api from '../../lib/api';
+import { adminAPI, productAPI } from '../../lib/api';
 import { Loader2, Edit, Trash2, PlusCircle, Search, Filter, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -26,14 +26,14 @@ export function ProductManagement() {
 
   const { data, isLoading, error, isFetching } = useQuery(
     ['adminProducts', filters],
-    () => api.get('/admin/products', { params: filters }),
+    () => adminAPI.getProducts(filters),
     { keepPreviousData: true }
   );
 
-  const { data: categoriesData } = useQuery('productCategories', () => api.get('/products/categories'));
+  const { data: categoriesData } = useQuery('productCategories', () => productAPI.getCategories());
 
   const createProductMutation = useMutation(
-    (newProduct) => api.post('/admin/products', newProduct),
+    (newProduct) => adminAPI.createProduct(newProduct),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('adminProducts');
@@ -48,7 +48,7 @@ export function ProductManagement() {
   );
 
   const updateProductMutation = useMutation(
-    ({ id, data }) => api.put(`/admin/products/${id}`, data),
+    ({ id, data }) => adminAPI.updateProduct(id, data),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('adminProducts');
@@ -64,7 +64,7 @@ export function ProductManagement() {
   );
 
   const deleteProductMutation = useMutation(
-    (id) => api.delete(`/admin/products/${id}`),
+    (id) => adminAPI.deleteProduct(id),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('adminProducts');
