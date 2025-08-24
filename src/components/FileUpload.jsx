@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, File, Image, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { fileUploader } from '@/lib/upload';
