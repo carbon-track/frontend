@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { Navigate, useLocation } from 'react-router-dom';
 import { checkAuthStatus, hasPermission } from '../../lib/auth';
 
@@ -40,8 +41,20 @@ export function ProtectedRoute({
     return <Navigate to="/dashboard" replace />;
   }
 
+  // 基于资料完整度的引导：如果需要认证且用户资料缺少学校或班级，则跳转到 /onboarding
+  if (requireAuth && isAuthenticated) {
+    const needsOnboarding = !user?.school_id || !user?.class_name;
+    // 允许本会话临时跳过引导（Onboarding页内点击“暂时跳过”设置的标记）
+    const onboardingSkipped = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('onboarding_skipped') === '1';
+    const currentPath = location.pathname;
+    if (needsOnboarding && currentPath !== '/onboarding' && !onboardingSkipped) {
+      // 避免在Onboarding页和登录等特殊页造成循环
+      return <Navigate to="/onboarding" replace />;
+    }
+  }
+
   // 需要管理员权限但不是管理员
-  if (requireAdmin && (!user || !user.is_admin)) {
+  if (requireAdmin && !user?.is_admin) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -96,4 +109,21 @@ export function PublicRoute({ children }) {
     </ProtectedRoute>
   );
 }
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node,
+  requireAuth: PropTypes.bool,
+  requireAdmin: PropTypes.bool,
+  permission: PropTypes.string,
+  fallback: PropTypes.node,
+};
+
+AdminRoute.propTypes = {
+  children: PropTypes.node,
+  fallback: PropTypes.node,
+};
+
+PublicRoute.propTypes = {
+  children: PropTypes.node,
+};
 

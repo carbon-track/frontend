@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { authAPI, validationRules } from '../../lib/auth';
+import { authAPI, getValidationRules } from '../../lib/auth';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
@@ -20,6 +20,7 @@ export function ForgotPasswordForm() {
     handleSubmit,
     formState: { errors }
   } = useForm();
+  const validationRules = getValidationRules();
 
   const onSubmit = async (data) => {
     setIsLoading(true);

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { authAPI, getReturnUrl, validationRules } from '../../lib/auth';
+import { authAPI, getReturnUrl, getValidationRules } from '../../lib/auth';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
@@ -24,6 +24,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors }
   } = useForm();
+  const validationRules = getValidationRules();
 
   const onSubmit = async (data) => {
     setIsLoading(true);

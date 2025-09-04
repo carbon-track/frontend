@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-  "lint": "eslint .",
-  "lint:imports": "eslint src --rule 'import/no-unresolved:error'",
+    "lint": "eslint .",
+    "lint:imports": "eslint src --rule 'import/no-unresolved:error'",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -80,6 +80,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "prop-types": "^15.8.1",
     "react-hot-toast": "^2.6.0",
     "tw-animate-css": "^1.2.9",
     "vite": "^6.3.5",

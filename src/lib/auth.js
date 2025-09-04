@@ -1,4 +1,5 @@
 import api from './api';
+import i18n from '@/lib/i18n';
 
 // Token管理
 export const tokenManager = {
@@ -175,42 +176,42 @@ export const hasPermission = (permission) => {
 };
 
 // 表单验证规则
-export const validationRules = {
-  usernameOrEmail: {
-    required: '用户名或邮箱不能为空'
-  },
-  username: {
-    required: '用户名不能为空',
-    minLength: { value: 3, message: '用户名至少3个字符' },
-    maxLength: { value: 20, message: '用户名最多20个字符' },
-    pattern: {
-      value: /^\w+$/,
-      message: '用户名只能包含字母、数字和下划线'
+// 生成基于当前语言的校验规则
+export const getValidationRules = () => {
+  const t = i18n.t.bind(i18n);
+  return {
+    usernameOrEmail: {
+      required: t('validation.required', { defaultValue: '此字段为必填项' })
+    },
+    username: {
+      required: t('validation.required'),
+      minLength: { value: 3, message: t('validation.minLength', { min: 3 }) },
+      maxLength: { value: 20, message: t('validation.maxLength', { max: 20 }) },
+      pattern: {
+        value: /^\w+$/,
+        message: t('auth.validation.usernamePattern', { defaultValue: '用户名只能包含字母、数字和下划线' })
+      }
+    },
+    email: {
+      required: t('validation.required'),
+      pattern: {
+        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: t('validation.email')
+      }
+    },
+    password: {
+      required: t('auth.passwordRequired', { defaultValue: t('validation.required') })
+    },
+    realName: {
+      required: t('validation.required'),
+      minLength: { value: 2, message: t('validation.minLength', { min: 2 }) },
+      maxLength: { value: 10, message: t('validation.maxLength', { max: 10 }) }
+    },
+    className: {
+      // 注册阶段不再强制必填
+      maxLength: { value: 20, message: t('validation.maxLength', { max: 20 }) }
     }
-  },
-  
-  email: {
-    required: '邮箱不能为空',
-    pattern: {
-      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      message: '请输入有效的邮箱地址'
-    }
-  },
-  
-  password: {
-    required: '密码不能为空'
-  },
-  
-  realName: {
-    required: '真实姓名不能为空',
-    minLength: { value: 2, message: '姓名至少2个字符' },
-    maxLength: { value: 10, message: '姓名最多10个字符' }
-  },
-  
-  className: {
-    required: '班级不能为空',
-    maxLength: { value: 20, message: '班级名称最多20个字符' }
-  }
+  };
 };
 
 // 错误处理
@@ -288,7 +289,7 @@ export default {
   redirectToLogin,
   getReturnUrl,
   hasPermission,
-  validationRules,
+  getValidationRules,
   handleAuthError,
   initAuth
 };

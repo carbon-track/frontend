@@ -16,6 +16,7 @@ const MessagesPage = React.lazy(() => import('../pages/MessagesPage'));
 const ProfilePage = React.lazy(() => import('../pages/ProfilePage'));
 const AdminPage = React.lazy(() => import('../pages/AdminPage'));
 const NotFoundPage = React.lazy(() => import('../pages/NotFoundPage'));
+const OnboardingPage = React.lazy(() => import('../pages/OnboardingPage'));
 
 // 加载组件
 const LoadingSpinner = () => (
@@ -94,6 +95,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute requireAuth={true}>
             <React.Suspense fallback={<LoadingSpinner />}>
               <ProfilePage />
+            </React.Suspense>
+          </ProtectedRoute>
+        )
+      }
+      ,{
+        path: 'onboarding',
+        element: (
+          <ProtectedRoute requireAuth={true}>
+            <React.Suspense fallback={<LoadingSpinner />}>
+              <OnboardingPage />
             </React.Suspense>
           </ProtectedRoute>
         )

@@ -156,6 +156,11 @@
     "passwordRequired": "密码不能为空",
     "confirmPasswordRequired": "请确认密码",
     "passwordMismatch": "两次输入的密码不一致",
+    "validation": {
+      "usernamePattern": "用户名只能包含字母、数字和下划线"
+    },
+    "schoolOptionalHint": "填写后可用于班级排名与统计，稍后也可以在引导中完成",
+    "classOptionalHint": "可先跳过，登录后会引导你选择/创建学校班级",
     "schoolRequired": "请选择学校",
     "login": {
       "title": "登录",
@@ -201,6 +206,19 @@
       "submit": "发送重置链接",
       "backToLogin": "返回登录"
     }
+  },
+  "onboarding": {
+    "title": "完善学校与班级信息",
+    "subtitle": "您可先跳过，之后也能在个人资料中补充",
+    "schoolPlaceholder": "输入关键字搜索，或直接输入新学校名称",
+    "noSchoolMatches": "无匹配学校，可直接输入名称创建",
+    "classLabel": "班级（可选）",
+    "classPlaceholder": "输入关键字搜索或新建",
+    "noClassMatches": "无匹配班级，可直接输入名称创建",
+    "leastOneField": "请至少选择学校或填写学校/班级信息",
+    "saved": "信息已保存",
+    "saveAndContinue": "保存并继续",
+    "skipForNow": "暂时跳过"
   },
   "dashboard": {
     "welcome": "欢迎回来",

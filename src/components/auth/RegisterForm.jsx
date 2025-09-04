@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { authAPI, validationRules } from '../../lib/auth';
+import { authAPI, getValidationRules } from '../../lib/auth';
 import { schoolAPI } from '../../lib/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -29,6 +29,7 @@ export function RegisterForm() {
     watch,
     formState: { errors }
   } = useForm();
+  const validationRules = getValidationRules();
 
   const password = watch('password');
 
@@ -36,9 +37,10 @@ export function RegisterForm() {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await schoolAPI.getSchools();
-        if (response.data.success) {
-          setSchools(response.data.data);
+        const response = await schoolAPI.getSchools({ limit: 100, page: 1 });
+        if (response.data?.success) {
+          const list = response.data?.data?.schools || [];
+          setSchools(list);
         }
       } catch (error) {
         console.error('Failed to fetch schools:', error);
@@ -54,16 +56,23 @@ export function RegisterForm() {
     setSuccess('');
 
     try {
-      const result = await authAPI.register({
+      const payload = {
         username: data.username,
         email: data.email,
         password: data.password,
         confirm_password: data.confirmPassword,
         real_name: data.realName,
-        school_id: parseInt(data.schoolId),
-        class_name: data.className,
         cf_turnstile_response: turnstileToken || undefined
-      });
+      };
+      if (data.schoolId) {
+        const sid = parseInt(data.schoolId, 10);
+        if (!Number.isNaN(sid)) payload.school_id = sid;
+      }
+      if (data.className) {
+        payload.class_name = data.className;
+      }
+
+      const result = await authAPI.register(payload);
 
       if (result.success) {
         setSuccess(t('auth.registerSuccess'));
@@ -191,16 +200,16 @@ export function RegisterForm() {
                   </div>
                 </div>
 
-                {/* 学校 */}
+                {/* 学校（可选） */}
                 <div>
                   <label htmlFor="schoolId" className="block text-sm font-medium text-gray-700">
-                    {t('auth.school')}
+                    {t('auth.school')}（{t('common.optional') || '可选'}）
                   </label>
                   <div className="mt-1">
                     <select
                       id="schoolId"
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                      {...register('schoolId', { required: t('auth.schoolRequired') })}
+                      {...register('schoolId')}
                     >
                       <option value="">{t('auth.selectSchool')}</option>
                       {schools.map((school) => (
@@ -209,18 +218,16 @@ export function RegisterForm() {
                         </option>
                       ))}
                     </select>
-                    {errors.schoolId && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.schoolId.message}
-                      </p>
-                    )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t('auth.schoolOptionalHint')}
+                    </p>
                   </div>
                 </div>
 
-                {/* 班级 */}
+                {/* 班级（可选） */}
                 <div>
                   <label htmlFor="className" className="block text-sm font-medium text-gray-700">
-                    {t('auth.className')}
+                    {t('auth.className')}（{t('common.optional') || '可选'}）
                   </label>
                   <div className="mt-1">
                     <Input
@@ -230,11 +237,9 @@ export function RegisterForm() {
                       error={errors.className}
                       {...register('className', validationRules.className)}
                     />
-                    {errors.className && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.className.message}
-                      </p>
-                    )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t('auth.classOptionalHint')}
+                    </p>
                   </div>
                 </div>
 

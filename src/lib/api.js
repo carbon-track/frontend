@@ -1,7 +1,26 @@
 import axios from 'axios';
 
 // API base URL - 可以通过环境变量配置
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// 规范化规则：
+// - 若以 /api 或 /api/ 结尾，自动追加 /v1（推荐直接在 .env 配置到 /api/v1）
+// - 去除末尾多余斜杠，避免组合路径出现 //
+const normalizeBaseUrl = (url) => {
+  if (!url) return 'http://localhost:8000/api/v1';
+  let u = String(url).trim();
+  // 去除末尾斜杠
+  u = u.replace(/\/+$/, '');
+  // 如果正好以 /api 结尾，则自动追加 /v1
+  if (/\/api$/i.test(u)) {
+    u = u + '/v1';
+    // 在开发环境提供一次性提示，帮助发现错误配置
+    if (typeof window !== 'undefined' && typeof console !== 'undefined') {
+      try { console.info('[api] VITE_API_URL 末尾为 /api，已自动追加 /v1 ->', u); } catch (_) {}
+    }
+  }
+  return u;
+};
+
+const API_BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1');
 
 // 创建axios实例
 const api = axios.create({
@@ -209,8 +228,14 @@ export const messageAPI = {
 };
 
 export const schoolAPI = {
-  // 获取学校列表
-  getSchools: () => api.get('/schools'),
+  // 获取学校列表（支持搜索与分页）
+  getSchools: (params = {}) => api.get('/schools', { params }),
+  // 创建或获取学校（按名称，不区分大小写）
+  createOrFetchSchool: (data) => api.post('/schools', data),
+  // 获取某学校的班级列表
+  getClasses: (schoolId, params = {}) => api.get(`/schools/${schoolId}/classes`, { params }),
+  // 为某学校创建班级（幂等）
+  createClass: (schoolId, data) => api.post(`/schools/${schoolId}/classes`, data),
 };
 
 export const fileAPI = {
