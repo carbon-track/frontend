@@ -205,14 +205,20 @@ export const router = createBrowserRouter([
     ]
   },
   
-  // 404 页面
+  // 404 页面（保持统一导航）
   {
     path: '*',
-    element: (
-      <React.Suspense fallback={<LoadingSpinner />}>
-        <NotFoundPage />
-      </React.Suspense>
-    )
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <React.Suspense fallback={<LoadingSpinner />}>
+            <NotFoundPage />
+          </React.Suspense>
+        )
+      }
+    ]
   }
 ]);
 

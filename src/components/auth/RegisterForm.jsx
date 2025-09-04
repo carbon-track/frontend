@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, School } from 'lucide-react';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { authAPI, validationRules } from '../../lib/auth';
 import { schoolAPI } from '../../lib/api';
@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
+import Turnstile from '../common/Turnstile';
 
 export function RegisterForm() {
   const { t } = useTranslation();
@@ -19,6 +20,8 @@ export function RegisterForm() {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [schools, setSchools] = useState([]);
+  const turnstileRef = useRef(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const {
     register,
@@ -59,19 +62,21 @@ export function RegisterForm() {
         real_name: data.realName,
         school_id: parseInt(data.schoolId),
         class_name: data.className,
-        turnstile_token: data.turnstile_token
+        cf_turnstile_response: turnstileToken || undefined
       });
 
       if (result.success) {
         setSuccess(t('auth.registerSuccess'));
         setTimeout(() => {
-          navigate('/login');
+          navigate('/auth/login'); // 修正路径
         }, 2000);
       } else {
         setError(result.message || t('auth.registerFailed'));
       }
     } catch (err) {
       setError(err.message || t('auth.registerFailed'));
+      // 失败时重置（容错）
+      turnstileRef.current?.reset?.();
     } finally {
       setIsLoading(false);
     }
@@ -303,9 +308,15 @@ export function RegisterForm() {
                 </div>
               </div>
 
-              {/* Turnstile验证码占位 */}
-              <div id="turnstile-container" className="flex justify-center">
-                {/* Turnstile widget will be rendered here */}
+              {/* Turnstile 验证码 */}
+              <div className="flex justify-center">
+                <Turnstile
+                  ref={turnstileRef}
+                  className="mt-2"
+                  onVerify={(tk) => setTurnstileToken(tk)}
+                  onExpire={() => setTurnstileToken('')}
+                  onError={() => setTurnstileToken('')}
+                />
               </div>
 
               <div>
@@ -313,7 +324,7 @@ export function RegisterForm() {
                   type="submit"
                   className="w-full"
                   loading={isLoading}
-                  disabled={isLoading}
+                  disabled={isLoading || (!!import.meta.env?.VITE_TURNSTILE_SITE_KEY && !turnstileToken)}
                 >
                   {isLoading ? t('auth.registering') : t('auth.signUp')}
                 </Button>
@@ -339,7 +350,7 @@ export function RegisterForm() {
           <p className="text-sm text-gray-600">
             {t('auth.haveAccount')}{' '}
             <Link
-              to="/login"
+              to="/auth/login"
               className="font-medium text-green-600 hover:text-green-500"
             >
               {t('auth.signInNow')}

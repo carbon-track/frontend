@@ -132,7 +132,7 @@ export function ProductCard({ product, onExchange, userPoints = 0 }) {
               className="w-full bg-green-600 hover:bg-green-700"
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
-              {t('store.exchange')}
+              {t('store.exchange.button')}
             </Button>
           )}
         </div>

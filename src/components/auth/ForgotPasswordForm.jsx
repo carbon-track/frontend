@@ -58,7 +58,7 @@ export function ForgotPasswordForm() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('auth.resetPassword')}</CardTitle>
+            <CardTitle>{t('auth.resetPassword.title', { defaultValue: t('auth.resetPassword') })}</CardTitle>
             <CardDescription>
               {t('auth.enterEmailForReset')}
             </CardDescription>

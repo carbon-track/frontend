@@ -112,6 +112,7 @@
     "signInToAccount": "登录您的账户",
     "createAccount": "创建新账户",
     "username": "用户名",
+    "usernameOrEmail": "用户名或邮箱",
     "email": "邮箱",
     "password": "密码",
     "confirmPassword": "确认密码",
@@ -119,6 +120,7 @@
     "school": "学校",
     "className": "班级",
     "usernamePlaceholder": "请输入用户名",
+    "usernameOrEmailPlaceholder": "请输入用户名或邮箱",
     "emailPlaceholder": "请输入邮箱地址",
     "passwordPlaceholder": "请输入密码",
     "confirmPasswordPlaceholder": "请再次输入密码",
@@ -192,7 +194,7 @@
       "resend": "重新发送",
       "verify": "验证"
     },
-    "resetPassword": {
+    "resetPasswordPage": {
       "title": "重置密码",
       "subtitle": "输入您的邮箱地址，我们将发送重置链接",
       "email": "邮箱地址",
@@ -383,7 +385,7 @@
       "maxPoints": "最高积分",
       "activeFilters": "当前筛选条件"
     },
-    "exchange": {
+    "exchangeSection": {
       "title": "确认兑换",
       "subtitle": "请确认您的兑换信息",
       "quantity": "兑换数量",
@@ -422,7 +424,7 @@
     "title": "积分商城",
     "subtitle": "使用您的环保积分兑换精美商品",
     "yourPoints": "我的积分",
-    "exchange": "立即兑换",
+    
     "exchangedCount": "已兑换 {{count}} 次",
     "featured": "精选",
     "unlimited": "无限库存",
@@ -475,6 +477,7 @@
       "activeFilters": "当前筛选条件"
     },
     "exchange": {
+      "button": "立即兑换",
       "title": "确认兑换",
       "subtitle": "请确认您的兑换信息",
       "quantity": "兑换数量",

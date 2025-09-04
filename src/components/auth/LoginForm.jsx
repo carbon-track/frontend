@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
+import Turnstile from '../common/Turnstile';
 
 export function LoginForm() {
   const { t } = useTranslation();
@@ -15,6 +16,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const turnstileRef = useRef(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const {
     register,
@@ -28,9 +31,9 @@ export function LoginForm() {
 
     try {
       const result = await authAPI.login({
-        username: data.username,
+        identifier: data.identifier,
         password: data.password,
-        turnstile_token: data.turnstile_token
+        cf_turnstile_response: turnstileToken || undefined
       });
 
       if (result.success) {
@@ -41,6 +44,8 @@ export function LoginForm() {
       }
     } catch (err) {
       setError(err.message || t('auth.loginFailed'));
+      // 失败时重置（容错）
+      turnstileRef.current?.reset?.();
     } finally {
       setIsLoading(false);
     }
@@ -83,21 +88,21 @@ export function LoginForm() {
               )}
 
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                  {t('auth.username')}
+                <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
+                  {t('auth.usernameOrEmail')}
                 </label>
                 <div className="mt-1">
                   <Input
-                    id="username"
+                    id="identifier"
                     type="text"
                     autoComplete="username"
-                    placeholder={t('auth.usernamePlaceholder')}
-                    error={errors.username}
-                    {...register('username', validationRules.username)}
+                    placeholder={t('auth.usernameOrEmailPlaceholder')}
+                    error={errors.identifier}
+                    {...register('identifier', validationRules.usernameOrEmail)}
                   />
-                  {errors.username && (
+                  {errors.identifier && (
                     <p className="mt-1 text-sm text-red-600">
-                      {errors.username.message}
+                      {errors.identifier.message}
                     </p>
                   )}
                 </div>
@@ -114,9 +119,7 @@ export function LoginForm() {
                     autoComplete="current-password"
                     placeholder={t('auth.passwordPlaceholder')}
                     error={errors.password}
-                    {...register('password', {
-                      required: t('auth.passwordRequired')
-                    })}
+                    {...register('password', validationRules.password)}
                   />
                   <button
                     type="button"
@@ -160,9 +163,15 @@ export function LoginForm() {
                 </div>
               </div>
 
-              {/* Turnstile验证码占位 */}
-              <div id="turnstile-container" className="flex justify-center">
-                {/* Turnstile widget will be rendered here */}
+              {/* Turnstile 验证码 */}
+              <div className="flex justify-center">
+                <Turnstile
+                  ref={turnstileRef}
+                  className="mt-2"
+                  onVerify={(tk) => setTurnstileToken(tk)}
+                  onExpire={() => setTurnstileToken('')}
+                  onError={() => setTurnstileToken('')}
+                />
               </div>
 
               <div>
@@ -170,7 +179,7 @@ export function LoginForm() {
                   type="submit"
                   className="w-full"
                   loading={isLoading}
-                  disabled={isLoading}
+                  disabled={isLoading || (!!import.meta.env?.VITE_TURNSTILE_SITE_KEY && !turnstileToken)}
                 >
                   {isLoading ? t('auth.signingIn') : t('auth.signIn')}
                 </Button>
@@ -194,4 +203,3 @@ export function LoginForm() {
     </div>
   );
 }
-

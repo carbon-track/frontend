@@ -25,10 +25,13 @@ export function SimpleLayout() {
 // 认证页面布局
 export function AuthLayout() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <Outlet />
-      </div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      <main className="flex-1">
+        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }

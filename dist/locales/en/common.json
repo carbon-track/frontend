@@ -17,6 +17,8 @@
     "logout": "Logout"
   },
   "auth": {
+    "usernameOrEmail": "Username or Email",
+    "usernameOrEmailPlaceholder": "Enter username or email",
     "login": {
       "title": "Login",
       "subtitle": "Welcome back to CarbonTrack",

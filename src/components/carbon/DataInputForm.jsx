@@ -50,7 +50,7 @@ export function DataInputForm({
 
   const onFormSubmit = (data) => {
     const formData = {
-      activity_id: activity.uuid,
+      activity_id: activity.id || activity.uuid,
       data: parseFloat(data.data),
       activity_date: data.activity_date,
       notes: data.notes,

@@ -52,13 +52,20 @@ export const userManager = {
 export const authAPI = {
   async login(credentials) {
     const response = await api.post('/auth/login', credentials);
-    
-    if (response.data.success) {
+
+    // 后端实际返回：{ success, message, data: { token, user } }
+    if (response.data?.success && response.data?.data?.token) {
       const { token, user } = response.data.data;
       tokenManager.setToken(token);
-      userManager.setUser(user);
+      if (user) {
+        userManager.setUser(user);
+      } else {
+        // 兜底拉取用户信息
+        await this.getCurrentUser();
+      }
+      return { success: true, data: { token, user: userManager.getUser() } };
     }
-    
+
     return response.data;
   },
 
@@ -82,8 +89,9 @@ export const authAPI = {
     try {
       const response = await api.get('/users/me');
       if (response.data.success) {
-        userManager.setUser(response.data.data);
-        return response.data.data;
+        const user = response.data.data;
+        userManager.setUser(user);
+        return user;
       }
     } catch (error) {
       console.error('Get current user failed:', error);
@@ -168,12 +176,15 @@ export const hasPermission = (permission) => {
 
 // 表单验证规则
 export const validationRules = {
+  usernameOrEmail: {
+    required: '用户名或邮箱不能为空'
+  },
   username: {
     required: '用户名不能为空',
     minLength: { value: 3, message: '用户名至少3个字符' },
     maxLength: { value: 20, message: '用户名最多20个字符' },
     pattern: {
-      value: /^[a-zA-Z0-9_]+$/,
+      value: /^\w+$/,
       message: '用户名只能包含字母、数字和下划线'
     }
   },
@@ -187,12 +198,7 @@ export const validationRules = {
   },
   
   password: {
-    required: '密码不能为空',
-    minLength: { value: 8, message: '密码至少8个字符' },
-    pattern: {
-      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      message: '密码必须包含大小写字母和数字'
-    }
+    required: '密码不能为空'
   },
   
   realName: {
@@ -266,7 +272,7 @@ export const initAuth = () => {
         authAPI.logout();
         redirectToLogin();
       }
-      return Promise.reject(error);
+      return Promise.reject(error instanceof Error ? error : new Error(error?.message || 'API response error'));
     }
   );
 

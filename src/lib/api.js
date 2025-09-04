@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API base URL - 可以通过环境变量配置
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 // 创建axios实例
 const api = axios.create({
@@ -25,15 +25,27 @@ api.interceptors.request.use(
     const isSensitive = sensitiveRoutes.some(route => config.url?.includes(route));
     
     if (isSensitive && ['post', 'put', 'patch'].includes(config.method?.toLowerCase())) {
-      // 生成UUID作为幂等性key
-      const requestId = crypto.randomUUID();
+      // 生成UUID作为幂等性key - 兼容性更好的方法
+      const generateUUID = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID();
+        }
+        // 备用UUID生成方法
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      };
+      
+      const requestId = generateUUID();
       config.headers['X-Request-ID'] = requestId;
     }
     
     return config;
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(error instanceof Error ? error : new Error(error?.message || 'API request error'));
   }
 );
 
@@ -50,8 +62,8 @@ api.interceptors.response.use(
       // 统一跳到新版登录页路径
       window.location.href = '/auth/login';
     }
-    
-    return Promise.reject(error);
+
+    return Promise.reject(error instanceof Error ? error : new Error(error?.message || 'API response error'));
   }
 );
 
@@ -106,11 +118,27 @@ export const carbonAPI = {
   // 获取单个活动详情
   getActivity: (id) => api.get(`/carbon-activities/${id}`),
   
-  // 计算碳减排（不创建记录）
-  calculate: (data) => api.post('/carbon-track/calculate', data),
+  // 计算碳减排（不创建记录） - 后端期望 { activity_id, data }
+  calculate: (activityId, data) => {
+    const requestBody = {
+      activity_id: activityId,
+      data: data
+    };
+    return api.post('/carbon-track/calculate', requestBody);
+  },
   
-  // 记录碳减排活动
-  recordActivity: (data) => api.post('/carbon-track/record', data),
+  // 记录碳减排活动 - 后端期望 { activity_id, amount, date, description?, images?, unit? }
+  recordActivity: (formData) => {
+    const requestBody = {
+      activity_id: formData.activity_id,
+      amount: formData.data, // 数值
+      date: formData.activity_date, // 直接传 yyyy-mm-dd 字符串
+      description: formData.notes || undefined,
+      images: formData.uploaded_files || undefined,
+      unit: formData.unit || undefined
+    };
+    return api.post('/carbon-track/record', requestBody);
+  },
   
   // 获取用户的碳减排交易记录
   getTransactions: (params = {}) => api.get('/carbon-track/transactions', { params }),
@@ -326,4 +354,3 @@ export const isAuthenticated = () => {
 };
 
 export default api;
-

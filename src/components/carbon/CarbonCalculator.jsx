@@ -40,10 +40,7 @@ export function CarbonCalculator() {
     setError('');
 
     try {
-      const response = await carbonAPI.calculate({
-        activity_id: selectedActivity.uuid,
-        data: data
-      });
+  const response = await carbonAPI.calculate(selectedActivity.id || selectedActivity.uuid, data);
 
       if (response.data.success) {
         setCalculationResult(response.data.data);
@@ -63,10 +60,18 @@ export function CarbonCalculator() {
     setError('');
 
     try {
-      const response = await carbonAPI.recordActivity(formData);
+      const response = await carbonAPI.recordActivity({
+        ...formData
+      });
 
       if (response.data.success) {
-        setSubmitResult(response.data.data);
+        // 后端 submitRecord 返回 { success, record_id, calculation: { carbon_saved, points_earned }, message }
+        const calc = response.data.calculation || {};
+        setSubmitResult({
+          carbon_saved: calc.carbon_saved || 0,
+          points_earned: calc.points_earned || 0,
+          record_id: response.data.record_id
+        });
         setCurrentStep(3);
       } else {
         setError(response.data.message || t('activities.form.submitFailed'));
@@ -260,4 +265,3 @@ export function CarbonCalculator() {
     </div>
   );
 }
-

@@ -192,10 +192,10 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link to="/login">
+                <Link to="/auth/login">
                   <Button variant="ghost">{t('nav.login')}</Button>
                 </Link>
-                <Link to="/register">
+                <Link to="/auth/register">
                   <Button>{t('nav.register')}</Button>
                 </Link>
               </div>
@@ -287,12 +287,12 @@ export function Navbar() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Link to="/login" onClick={closeMobile}>
+                  <Link to="/auth/login" onClick={closeMobile}>
                     <Button variant="ghost" className="w-full justify-start">
                       {t('nav.login')}
                     </Button>
                   </Link>
-                  <Link to="/register" onClick={closeMobile}>
+                  <Link to="/auth/register" onClick={closeMobile}>
                     <Button className="w-full">
                       {t('nav.register')}
                     </Button>

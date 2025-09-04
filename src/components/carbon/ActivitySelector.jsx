@@ -34,15 +34,19 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
       try {
         setLoading(true);
         const response = await carbonAPI.getActivities();
-        
+
         if (response.data.success) {
-          const activitiesData = response.data.data;
+          // 后端返回 { success, data: { activities, categories, total } }
+          const payload = response.data.data;
+          const activitiesData = Array.isArray(payload?.activities) ? payload.activities : (Array.isArray(payload) ? payload : []);
           setActivities(activitiesData);
           setFilteredActivities(activitiesData);
-          
-          // 提取分类
-          const uniqueCategories = [...new Set(activitiesData.map(activity => activity.category))];
-          setCategories(uniqueCategories);
+
+          // 分类来自 payload.categories，若不存在则从活动中提取
+          const cats = Array.isArray(payload?.categories) && payload.categories.length > 0
+            ? payload.categories
+            : [...new Set(activitiesData.map(activity => activity.category))];
+          setCategories(cats);
         } else {
           setError(response.data.message || t('errors.loadFailed'));
         }
@@ -150,11 +154,11 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredActivities.map((activity) => {
           const IconComponent = categoryIcons[activity.category] || Leaf;
-          const isSelected = selectedActivity?.uuid === activity.uuid;
+          const isSelected = (selectedActivity?.id || selectedActivity?.uuid) === (activity.id || activity.uuid);
           
           return (
             <Card
-              key={activity.uuid}
+              key={activity.id || activity.uuid}
               className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                 isSelected 
                   ? 'ring-2 ring-green-500 bg-green-50' 
