@@ -167,6 +167,7 @@ export const carbonAPI = {
       amount: formData.data, // 数值
       date: formData.activity_date, // 直接传 yyyy-mm-dd 字符串
       description: formData.notes || undefined,
+      // 方案B：前端已预上传，使用返回的 public_url 列表作为 images
       images: formData.uploaded_files || undefined,
       unit: formData.unit || undefined
     };

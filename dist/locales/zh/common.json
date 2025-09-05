@@ -277,7 +277,6 @@
     "title": "碳减排活动",
     "description": "记录您的环保行动，计算碳减排量并获得积分奖励",
     "record": "记录活动",
-    "history": "历史记录",
     "selectActivityFirst": "请先选择一个碳减排活动",
     "searchPlaceholder": "搜索活动名称或描述...",
     "noActivitiesFound": "未找到匹配的活动",
@@ -299,7 +298,8 @@
       "energy": "节能减排",
       "water": "节水行动",
       "waste": "垃圾分类",
-      "travel": "绿色出行"
+      "travel": "绿色出行",
+      "unknown": "未知分类"
     },
     "form": {
       "selectActivity": "选择活动",
@@ -341,10 +341,35 @@
     "table": {
       "activity": "活动",
       "data": "数据",
+      "carbonSaved": "碳减排量",
       "points": "积分",
       "status": "状态",
       "date": "日期",
       "actions": "操作"
+    },
+    "history": {
+      "title": "活动历史",
+      "subtitle": "查看和管理您提交的碳减排活动",
+      "noActivitiesFound": "未找到活动记录",
+      "tryDifferentFilters": "请尝试调整筛选条件或搜索关键词"
+    },
+    "filters": {
+      "title": "筛选",
+      "searchPlaceholder": "按活动名称或描述搜索...",
+      "category": "分类",
+      "allCategories": "全部分类",
+      "status": "状态",
+      "allStatus": "全部状态",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "activeFilters": "当前筛选条件"
+    },
+    "detail": {
+      "title": "活动详情",
+      "subtitle": "查看此活动的详细信息",
+      "notes": "备注",
+      "proofImages": "证明图片",
+      "rejectionReason": "拒绝原因"
     }
   },
   "products": {
@@ -527,6 +552,7 @@
   "messages": {
     "title": "消息中心",
     "subtitle": "查看和管理您的通知和消息",
+    "description": "查看通知、活动审核和系统消息",
     "unread": "未读",
     "read": "已读",
     "all": "全部",
@@ -534,24 +560,24 @@
     "delete": "删除",
     "deleteAll": "删除全部",
     "noMessages": "暂无消息",
-    "noMessagesDesc": "您将在这里收到活动审批和系统更新的通知",
+    "noMessagesDesc": "您将在此处收到有关活动审核和系统更新的通知",
     "noMessagesFound": "未找到消息",
-    "tryDifferentFilters": "请尝试调整筛选条件",
+    "tryDifferentFilters": "请尝试调整您的筛选条件",
     "loadError": "加载消息失败",
     "markAsRead": "标记为已读",
     "markAsUnread": "标记为未读",
-    "deleteMessage": "删除消息",
     "markRead": "标记为已读",
-    "markReadSuccess": "消息已标记为已读",
-    "markReadFailed": "标记已读失败",
-    "markAllReadSuccess": "全部消息已标记为已读",
-    "markAllReadFailed": "标记全部已读失败",
+    "deleteMessage": "删除消息",
+    "confirmDelete": "您确定要删除此消息吗？",
+    "confirmMarkAllRead": "您确定要将所有消息标记为已读吗？",
+    "confirmDeleteAll": "您确定要删除所有消息吗？",
+    "deleteAllNotImplemented": "删除所有消息功能尚未实现",
+    "markReadSuccess": "消息已成功标记为已读",
+    "markReadFailed": "标记消息为已读失败",
     "deleteSuccess": "消息删除成功",
     "deleteFailed": "删除消息失败",
-    "deleteAllNotImplemented": "删除全部消息功能尚未实现",
-    "confirmDelete": "确定要删除此消息吗？",
-    "confirmMarkAllRead": "确定要将全部消息标记为已读吗？",
-    "confirmDeleteAll": "确定要删除全部消息吗？",
+    "markAllReadSuccess": "所有消息已成功标记为已读",
+    "markAllReadFailed": "标记所有消息为已读失败",
     "type": "类型",
     "status": "状态",
     "date": "日期",
@@ -559,7 +585,16 @@
     "content": "内容",
     "detail": {
       "title": "消息详情",
-      "subtitle": "查看消息详情和内容"
+      "subtitle": "查看此消息的详细信息"
+    },
+    "filters": {
+      "title": "筛选消息",
+      "searchPlaceholder": "输入主题或内容进行搜索",
+      "status": "状态",
+      "allStatus": "全部状态",
+      "priorityHighToLow": "优先级：高到低",
+      "priorityLowToHigh": "优先级：低到高",
+      "activeFilters": "当前筛选条件"
     },
     "priority": {
       "title": "优先级",
@@ -666,7 +701,6 @@
     "view": "查看",
     "search": "搜索",
     "filter": "筛选",
-    "sort": "排序",
     "refresh": "刷新",
     "back": "返回",
     "next": "下一步",
@@ -692,7 +726,14 @@
     "share": "分享",
     "print": "打印",
     "export": "导出",
-    "import": "导入"
+    "import": "导入",
+    "sort": {
+      "sortBy": "排序方式",
+      "newest": "最新优先",
+      "oldest": "最旧优先",
+      "pointsHighToLow": "积分：从高到低",
+      "pointsLowToHigh": "积分：从低到高"
+    }
   },
   "validation": {
     "required": "此字段为必填项",
@@ -717,7 +758,9 @@
     "timeout": "请求超时",
     "unknown": "未知错误",
     "validation": "数据验证失败",
-    "turnstile": "人机验证失败，请重试"
+    "turnstile": "人机验证失败，请重试",
+    "tooManyFiles": "选择的文件过多（最多 {{max}} 个）",
+    "singleFileOnly": "仅支持上传单个文件"
   },
   "success": {
     "login": "登录成功",
@@ -767,18 +810,52 @@
   },
   "units": {
     "times": "次",
+    "time": "次",
     "hours": "小时",
+    "hour": "小时",
+    "h": "小时",
+    "hr": "小时",
     "days": "天",
+    "day": "天",
+    "d": "天",
     "kg": "公斤",
+    "kilogram": "公斤",
+    "kilograms": "公斤",
     "liters": "升",
+    "liter": "升",
+    "litre": "升",
+    "litres": "升",
+    "l": "升",
+    "L": "升",
     "km": "公里",
+    "kilometer": "公里",
+    "kilometers": "公里",
     "kWh": "度",
+    "kwh": "度",
+    "KWH": "度",
     "sheets": "张",
+    "sheet": "张",
     "items": "件",
+    "item": "件",
     "books": "本",
+    "book": "本",
     "trees": "棵",
+    "tree": "棵",
     "appliances": "台",
-    "minutes": "分钟"
+    "appliance": "台",
+    "minutes": "分钟",
+    "minute": "分钟",
+    "min": "分钟",
+    "m": "米",
+    "cm": "厘米",
+    "mm": "毫米",
+    "g": "克",
+    "mg": "毫克",
+    "t": "吨",
+    "pcs": "件",
+    "piece": "件",
+    "pieces": "件",
+    "unit": "单位"
   }
 }
 

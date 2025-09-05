@@ -10,6 +10,14 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
 
   if (!isOpen || !activity) return null;
 
+  const getName = (a) => a.activity_name || a.activity_name_zh || a.activity_name_en || a.activity || '';
+  const getCategory = (a) => a.activity_category || a.category || 'unknown';
+  const getUnit = (a) => a.activity_unit || a.unit || '';
+  const images = Array.isArray(activity.images) ? activity.images
+    : (Array.isArray(activity.proof_images) ? activity.proof_images : []);
+  const normalizedImages = images.map((img) => typeof img === 'string' ? img : (img.public_url || img.url || ''))
+    .filter(Boolean);
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
@@ -59,8 +67,8 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.activity')}</p>
-                <p className="text-lg font-semibold text-gray-900">{activity.activity_name}</p>
-                <p className="text-sm text-gray-600">{t(`activities.categories.${activity.activity_category}`, activity.activity_category)}</p>
+                <p className="text-lg font-semibold text-gray-900">{getName(activity)}</p>
+                <p className="text-sm text-gray-600">{t(`activities.categories.${getCategory(activity)}`, getCategory(activity))}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.status')}</p>
@@ -72,7 +80,7 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.data')}</p>
-                 <p className="text-gray-900">{formatNumber(activity.data_value)} {t(`units.${activity.activity_unit}`, activity.activity_unit)}</p>
+            <p className="text-gray-900">{formatNumber(activity.data_value ?? activity.amount)} {t(`units.${getUnit(activity)}`, getUnit(activity))}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.carbonSaved')}</p>
@@ -105,17 +113,17 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
             )}
 
             {/* 证明图片 */}
-            {activity.proof_images && activity.proof_images.length > 0 && (
+            {normalizedImages.length > 0 && (
               <div>
                 <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
                   <ImageIcon className="h-4 w-4 mr-2" />{t('activities.detail.proofImages')}
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {activity.proof_images.map((image, index) => (
+                  {normalizedImages.map((image, index) => (
                     <a key={index} href={image} target="_blank" rel="noopener noreferrer">
                       <img
                         src={image}
-                        alt={`${activity.activity_name} proof ${index + 1}`}
+                        alt={`${getName(activity)} proof ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg shadow-sm"
                       />
                     </a>

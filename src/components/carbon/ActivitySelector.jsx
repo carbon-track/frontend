@@ -19,7 +19,7 @@ const categoryIcons = {
 };
 
 export function ActivitySelector({ onActivitySelect, selectedActivity }) {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const [activities, setActivities] = useState([]);
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -34,21 +34,26 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
       try {
         setLoading(true);
         const response = await carbonAPI.getActivities();
+        
+        if (response?.data?.success) {
+          const payload = response?.data?.data;
+          // 后端返回 { data: { activities: [], categories: [], total: number } }
+          const activitiesData = Array.isArray(payload?.activities)
+            ? payload.activities
+            : Array.isArray(payload)
+              ? payload
+              : [];
 
-        if (response.data.success) {
-          // 后端返回 { success, data: { activities, categories, total } }
-          const payload = response.data.data;
-          const activitiesData = Array.isArray(payload?.activities) ? payload.activities : (Array.isArray(payload) ? payload : []);
           setActivities(activitiesData);
           setFilteredActivities(activitiesData);
 
-          // 分类来自 payload.categories，若不存在则从活动中提取
-          const cats = Array.isArray(payload?.categories) && payload.categories.length > 0
+          // 提取分类（优先使用后端 categories，否则从活动推导）
+          const uniqueCategories = Array.isArray(payload?.categories)
             ? payload.categories
-            : [...new Set(activitiesData.map(activity => activity.category))];
-          setCategories(cats);
+            : [...new Set(activitiesData.map((activity) => activity.category).filter(Boolean))];
+          setCategories(uniqueCategories);
         } else {
-          setError(response.data.message || t('errors.loadFailed'));
+          setError(response?.data?.message || t('errors.loadFailed'));
         }
       } catch (err) {
         setError(err.message || t('errors.network'));
@@ -69,13 +74,15 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
       filtered = filtered.filter(activity => activity.category === selectedCategory);
     }
 
-    // 按搜索词筛选
+    // 按搜索词筛选（字段容错处理）
     if (searchTerm) {
-      filtered = filtered.filter(activity => 
-        activity.name_zh.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.name_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.description_zh.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.description_en.toLowerCase().includes(searchTerm.toLowerCase())
+      const q = (searchTerm || '').toString().toLowerCase();
+      const lower = (v) => (v ?? '').toString().toLowerCase();
+      filtered = filtered.filter((activity) =>
+        lower(activity.name_zh).includes(q) ||
+        lower(activity.name_en).includes(q) ||
+        lower(activity.description_zh).includes(q) ||
+        lower(activity.description_en).includes(q)
       );
     }
 
@@ -91,11 +98,17 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
   };
 
   const getActivityName = (activity) => {
-    return activity.name_zh || activity.name_en || activity.name;
+    const isEn = (currentLanguage || '').toLowerCase().startsWith('en');
+    return isEn
+      ? (activity.name_en || activity.name_zh || activity.name)
+      : (activity.name_zh || activity.name_en || activity.name);
   };
 
   const getActivityDescription = (activity) => {
-    return activity.description_zh || activity.description_en || activity.description;
+    const isEn = (currentLanguage || '').toLowerCase().startsWith('en');
+    return isEn
+      ? (activity.description_en || activity.description_zh || activity.description)
+      : (activity.description_zh || activity.description_en || activity.description);
   };
 
   if (loading) {
@@ -154,11 +167,13 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredActivities.map((activity) => {
           const IconComponent = categoryIcons[activity.category] || Leaf;
-          const isSelected = (selectedActivity?.id || selectedActivity?.uuid) === (activity.id || activity.uuid);
+          const selectedId = selectedActivity?.id || selectedActivity?.uuid;
+          const activityId = activity.id || activity.uuid;
+          const isSelected = selectedId && activityId && selectedId === activityId;
           
           return (
             <Card
-              key={activity.id || activity.uuid}
+              key={activityId}
               className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                 isSelected 
                   ? 'ring-2 ring-green-500 bg-green-50' 
@@ -193,7 +208,7 @@ export function ActivitySelector({ onActivitySelect, selectedActivity }) {
                 
                 <div className="flex items-center justify-between text-xs">
                   <div className="text-gray-500">
-                    {t('activities.unit')}: {activity.unit}
+                    {t('activities.unit')}: {t(`units.${activity.unit}`, activity.unit)}
                   </div>
                   <div className="text-green-600 font-medium">
                     {activity.carbon_factor} {t('activities.carbonFactor')}

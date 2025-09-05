@@ -11,8 +11,8 @@ export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
 
   if (!isOpen || !message) return null;
 
-  const getStatusBadge = (status) => {
-    if (status === 'read') {
+  const getStatusBadge = (is_read) => {
+    if (is_read) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
           <MailOpen className="h-3 w-3 mr-1" /> {t('messages.read')}
@@ -26,21 +26,7 @@ export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
       );
     }
   };
-
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case 'low':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{t('messages.priority.low')}</span>;
-      case 'normal':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{t('messages.priority.normal')}</span>;
-      case 'high':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{t('messages.priority.high')}</span>;
-      case 'urgent':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{t('messages.priority.urgent')}</span>;
-      default:
-        return null;
-    }
-  };
+  // 当前数据库无 type/priority 字段，相关展示已移除
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose?.(); }}>
@@ -54,16 +40,8 @@ export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
           {/* 基本信息 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-500">{t('messages.type')}</p>
-              <p className="text-lg font-semibold text-gray-900">{t(`messages.types.${message.type}`, message.type)}</p>
-            </div>
-            <div>
               <p className="text-sm font-medium text-gray-500">{t('messages.status')}</p>
-              {getStatusBadge(message.status)}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">{t('messages.priority.title')}</p>
-              {getPriorityBadge(message.priority)}
+              {getStatusBadge(message.is_read)}
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">{t('messages.date')}</p>
@@ -76,7 +54,7 @@ export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
             <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
               <MessageSquare className="h-4 w-4 mr-2" />{t('messages.subject')}
             </h4>
-            <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{message.subject}</p>
+            <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{message.title}</p>
           </div>
           <div>
             <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
@@ -87,7 +65,7 @@ export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
 
           {/* 操作按钮 */}
           <DialogFooter className="pt-2">
-            {message.status === 'unread' && (
+            {!message.is_read && (
               <Button
                 variant="outline"
                 onClick={() => onMarkRead(message.id)}
@@ -110,10 +88,8 @@ MessageDetailModal.propTypes = {
   onMarkRead: PropTypes.func.isRequired,
   message: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    type: PropTypes.string.isRequired,
-    status: PropTypes.string.isRequired,
-    priority: PropTypes.string,
-    subject: PropTypes.string,
+    is_read: PropTypes.bool.isRequired,
+    title: PropTypes.string,
     created_at: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.instanceOf(Date)]).isRequired,
     content: PropTypes.string,
   }),

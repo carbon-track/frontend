@@ -76,11 +76,23 @@ export const authAPI = {
   },
 
   async logout() {
+    // 先立即清理本地状态，避免未等待网络返回导致 UI 仍显示已登录
     try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.warn('Logout API call failed:', error);
+      tokenManager.removeToken();
+      userManager.removeUser();
+      // 清理刷新定时器（如已启动）
+      try { clearTokenRefreshTimer(); } catch (e) {
+        if (import.meta?.env?.DEV) {
+          // eslint-disable-next-line no-console
+          console.debug('clearTokenRefreshTimer failed during logout:', e);
+        }
+      }
+      // 尝试通知后端（无需阻塞或依赖其结果）
+      await api.post('/auth/logout').catch((error) => {
+        console.warn('Logout API call failed:', error);
+      });
     } finally {
+      // 再次兜底清理
       tokenManager.removeToken();
       userManager.removeUser();
     }
@@ -230,8 +242,18 @@ export const handleAuthError = (error) => {
 // 自动刷新token
 export const setupTokenRefresh = () => {
   const refreshInterval = 30 * 60 * 1000; // 30分钟
-  
-  setInterval(async () => {
+  // 若已有定时器，先清理，避免重复注册
+  if (typeof window !== 'undefined' && window.__auth_refresh_timer_id) {
+    try { clearInterval(window.__auth_refresh_timer_id); } catch (e) {
+      if (import.meta?.env?.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug('clearInterval failed in setupTokenRefresh:', e);
+      }
+    }
+    window.__auth_refresh_timer_id = null;
+  }
+
+  const id = setInterval(async () => {
     const token = tokenManager.getToken();
     if (!token || !tokenManager.isTokenValid()) {
       return;
@@ -253,6 +275,22 @@ export const setupTokenRefresh = () => {
       authAPI.logout();
     }
   }, refreshInterval);
+  if (typeof window !== 'undefined') {
+    window.__auth_refresh_timer_id = id;
+  }
+};
+
+// 供登出时清理刷新定时器使用
+export const clearTokenRefreshTimer = () => {
+  if (typeof window !== 'undefined' && window.__auth_refresh_timer_id) {
+    try { clearInterval(window.__auth_refresh_timer_id); } catch (e) {
+      if (import.meta?.env?.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug('clearInterval failed in clearTokenRefreshTimer:', e);
+      }
+    }
+    window.__auth_refresh_timer_id = null;
+  }
 };
 
 // 初始化认证
@@ -291,6 +329,7 @@ export default {
   hasPermission,
   getValidationRules,
   handleAuthError,
-  initAuth
+  initAuth,
+  clearTokenRefreshTimer
 };
 

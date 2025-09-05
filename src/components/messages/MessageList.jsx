@@ -7,28 +7,14 @@ import { Button } from '../ui/Button';
 export function MessageList({ messages, onRowClick, onMarkRead, onDelete }) {
   const { t } = useTranslation();
 
-  const getStatusIcon = (status) => {
-    if (status === 'read') {
+  const getStatusIcon = (is_read) => {
+    if (is_read) {
       return <MailOpen className="h-4 w-4 text-gray-500" />;
     } else {
       return <Mail className="h-4 w-4 text-blue-500" />;
     }
   };
-
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case 'low':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{t('messages.priority.low')}</span>;
-      case 'normal':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{t('messages.priority.normal')}</span>;
-      case 'high':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{t('messages.priority.high')}</span>;
-      case 'urgent':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{t('messages.priority.urgent')}</span>;
-      default:
-        return null;
-    }
-  };
+  // 当前数据库结构无 priority/type 字段，移除徽章显示
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border">
@@ -39,19 +25,13 @@ export function MessageList({ messages, onRowClick, onMarkRead, onDelete }) {
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {t('messages.types.title')}
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              {t('messages.priority.title')}
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
               {t('messages.subject')}
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t('messages.content')}
             </th>
             <th
               scope="col"
@@ -75,25 +55,22 @@ export function MessageList({ messages, onRowClick, onMarkRead, onDelete }) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {messages.map((message) => (
-            <tr key={message.id} className={`hover:bg-gray-50 ${message.status === 'unread' ? 'bg-blue-50' : ''}`}>
+            <tr key={message.id} className={`hover:bg-gray-50 ${!message.is_read ? 'bg-blue-50' : ''}`}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
-                  {getStatusIcon(message.status)}
-                  <span className="ml-2 text-sm font-medium text-gray-900">
-                    {t(`messages.types.${message.type}`, message.type)}
+                  {getStatusIcon(message.is_read)}
+                  <span className="ml-2 text-sm font-medium text-gray-900 line-clamp-1">
+                    {message.title}
                   </span>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {getPriorityBadge(message.priority)}
-              </td>
               <td className="px-6 py-4">
                 <div className="text-sm text-gray-900 line-clamp-1">
-                  {message.subject}
+                  {message.content?.slice(0, 120)}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {t(`messages.${message.status}`)}
+                {message.is_read ? t('messages.read') : t('messages.unread')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {formatDateSafe(message.created_at, 'yyyy-MM-dd HH:mm')}
@@ -107,7 +84,7 @@ export function MessageList({ messages, onRowClick, onMarkRead, onDelete }) {
                 >
                   <Eye className="h-4 w-4 mr-1" /> {t('common.view')}
                 </Button>
-                {message.status === 'unread' && (
+                {!message.is_read && (
                   <Button
                     variant="ghost"
                     size="sm"

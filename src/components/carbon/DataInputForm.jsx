@@ -89,8 +89,32 @@ export function DataInputForm({
     onSubmit(formData);
   };
 
-  const handleFileUpload = (files) => {
-    setUploadedFiles(files);
+  // 处理文件组件上传成功后的回调（方案B：预上传，拿URL再提交）
+  const handleUploadSuccess = (result) => {
+    try {
+      // 兼容多文件与单文件两种返回结构
+      // 多文件：{ success, message, data: { results: [{ public_url, file_path, ... }], ... } }
+      // 单文件：{ success, message, data: { public_url, file_path, ... } }
+      // 也兼容直接返回 data 层被透传的情况
+      let urls = [];
+
+      if (result?.data?.results && Array.isArray(result.data.results)) {
+        urls = result.data.results
+          .map(r => r.public_url || (r.file_path ? `/${r.file_path}` : null))
+          .filter(Boolean);
+      } else if (result?.data?.public_url) {
+        urls = [result.data.public_url];
+      } else if (result?.public_url) {
+        urls = [result.public_url];
+      } else if (result?.data?.file_path) {
+        urls = [`/${result.data.file_path}`];
+      }
+
+      setUploadedFiles(urls);
+    } catch (e) {
+      // 静默回退，不影响主流程
+      console.warn('Handle upload success parse failed:', e);
+    }
   };
 
   if (!activity) {
@@ -135,7 +159,7 @@ export function DataInputForm({
             </div>
             <div>
               <span className="text-gray-500">{t('activities.unit')}:</span>
-              <div className="font-medium">{activity.unit}</div>
+              <div className="font-medium">{t(`units.${activity.unit}`, activity.unit)}</div>
             </div>
             <div>
               <span className="text-gray-500">{t('activities.carbonFactor')}:</span>
@@ -168,7 +192,7 @@ export function DataInputForm({
             {/* 数据输入 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('activities.form.dataValue')} ({activity.unit})
+                {t('activities.form.dataValue')} ({t(`units.${activity.unit}`, activity.unit)})
               </label>
               <Input
                 type="number"
@@ -230,10 +254,13 @@ export function DataInputForm({
                 {t('activities.form.uploadImage')}
               </label>
               <FileUpload
+                multiple
+                directory="activities"
+                entityType="carbon_record"
                 accept="image/*"
                 maxFiles={3}
                 maxSize={5 * 1024 * 1024}
-                onUpload={handleFileUpload}
+                onUploadSuccess={handleUploadSuccess}
                 className="border-2 border-dashed border-gray-300 rounded-lg p-6"
               />
               <p className="mt-1 text-xs text-gray-500">

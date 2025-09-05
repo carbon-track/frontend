@@ -104,7 +104,8 @@ export function ProductManagement() {
 
   const products = data?.data?.data || [];
   const pagination = data?.data?.pagination || {};
-  const categories = categoriesData?.data?.data || [];
+  // 后端返回 [{ category, product_count }]
+  const categories = (categoriesData?.data?.data || []).map(c => ({ id: c.category, name: c.category }));
 
   return (
     <div className="space-y-6">
@@ -150,7 +151,7 @@ export function ProductManagement() {
                 <option value="">{t('common.all')}</option>
                 <option value="active">{t('admin.products.statusActive')}</option>
                 <option value="inactive">{t('admin.products.statusInactive')}</option>
-                <option value="out_of_stock">{t('admin.products.statusOutOfStock')}</option>
+                {/* 后端仅支持 active/inactive */}
               </select>
             </div>
           </div>
@@ -200,17 +201,17 @@ export function ProductManagement() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">{formatNumber(product.price)} {t('common.points')}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">{formatNumber(product.price ?? product.points_required)} {t('common.points')}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock === -1 ? t('admin.products.unlimited') : formatNumber(product.stock)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.status === 'active' ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {t('admin.products.statusActive')}
-                        </span>
-                      ) : product.status === 'out_of_stock' ? (
+                      {product.stock === 0 ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           {t('admin.products.statusOutOfStock')}
+                        </span>
+                      ) : product.status === 'active' ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {t('admin.products.statusActive')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -266,12 +267,11 @@ function ProductFormModal({ onClose, product, categories, onSubmit, isSubmitting
     defaultValues: product || {
       name: '',
       description: '',
-      category_id: categories.length > 0 ? categories[0].id : '',
+      category: categories.length > 0 ? categories[0].id : '',
       price: 0,
       stock: -1,
       image_url: '',
       status: 'active',
-      is_featured: false,
     }
   });
 
@@ -279,24 +279,34 @@ function ProductFormModal({ onClose, product, categories, onSubmit, isSubmitting
     if (product) {
       reset({
         ...product,
-        category_id: product.category_id || (categories.length > 0 ? categories[0].id : ''),
+        category: product.category || (categories.length > 0 ? categories[0].id : ''),
+        price: product.price ?? product.points_required ?? 0,
       });
     } else {
       reset({
         name: '',
         description: '',
-        category_id: categories.length > 0 ? categories[0].id : '',
+        category: categories.length > 0 ? categories[0].id : '',
         price: 0,
         stock: -1,
         image_url: '',
         status: 'active',
-        is_featured: false,
       });
     }
   }, [product, categories, reset]);
 
   const handleFormSubmit = (data) => {
-    onSubmit(product ? { id: product.id, data } : data);
+    // 将表单数据映射为后端所需字段
+    const payload = {
+      name: data.name,
+      description: data.description,
+      category: data.category,
+      points_required: Number(data.price) || 0,
+      stock: Number(data.stock),
+      image_path: data.image_url || undefined,
+      status: data.status,
+    };
+    onSubmit(product ? { id: product.id, data: payload } : payload);
   };
 
   return (
@@ -318,12 +328,12 @@ function ProductFormModal({ onClose, product, categories, onSubmit, isSubmitting
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">{t('admin.products.form.category')}</label>
-              <select {...register('category_id', { required: t('validation.required') })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
+              <select {...register('category', { required: t('validation.required') })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
-              {errors.category_id && <p className="text-red-500 text-xs mt-1">{errors.category_id.message}</p>}
+              {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">{t('admin.products.form.price')}</label>
@@ -345,12 +355,7 @@ function ProductFormModal({ onClose, product, categories, onSubmit, isSubmitting
               <select {...register('status')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
                 <option value="active">{t('admin.products.statusActive')}</option>
                 <option value="inactive">{t('admin.products.statusInactive')}</option>
-                <option value="out_of_stock">{t('admin.products.statusOutOfStock')}</option>
               </select>
-            </div>
-            <div className="flex items-center">
-              <input type="checkbox" {...register('is_featured')} className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
-              <label className="ml-2 block text-sm text-gray-900">{t('admin.products.form.isFeatured')}</label>
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>{t('common.cancel')}</Button>

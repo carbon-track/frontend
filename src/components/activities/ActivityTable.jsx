@@ -6,6 +6,9 @@ import { Button } from '../ui/Button';
 
 export function ActivityTable({ activities, onRowClick }) {
   const { t } = useTranslation();
+  const getName = (a) => a.activity_name || a.activity_name_zh || a.activity_name_en || a.activity || '';
+  const getCategory = (a) => a.activity_category || a.category || 'unknown';
+  const getUnit = (a) => a.activity_unit || a.unit || '';
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -86,15 +89,15 @@ export function ActivityTable({ activities, onRowClick }) {
             <tr key={activity.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">
-                  {activity.activity_name}
+                  {getName(activity)}
                 </div>
                 <div className="text-sm text-gray-500">
-                  {t(`activities.categories.${activity.activity_category}`, activity.activity_category)}
+                  {t(`activities.categories.${getCategory(activity)}`, getCategory(activity))}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
-                  {formatNumber(activity.data_value)} {t(`units.${activity.activity_unit}`, activity.activity_unit)}
+                  {formatNumber(activity.data_value ?? activity.amount)} {t(`units.${getUnit(activity)}`, getUnit(activity))}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">

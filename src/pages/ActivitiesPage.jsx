@@ -49,6 +49,11 @@ export default function ActivitiesPage() {
 
   const activities = data?.data?.data || [];
   const pagination = data?.data?.pagination || {};
+  // 统一后端不同分页字段命名，防止 undefined 造成 UI 占位符问题
+  const currentPage = pagination.page ?? pagination.current_page ?? filters.page ?? 1;
+  const totalPages = pagination.pages ?? pagination.total_pages ?? 1;
+  const itemsPerPage = pagination.limit ?? pagination.per_page ?? filters.limit ?? 10;
+  const totalItems = pagination.total ?? pagination.total_items ?? activities.length ?? 0;
   // 将类别数据在页面层进行一次归一化，避免下游组件多处判空
   const categoriesRaw = categoriesData?.data?.data;
   const categories = React.useMemo(() => {
@@ -94,11 +99,11 @@ export default function ActivitiesPage() {
         <>
           <ActivityTable activities={activities} onRowClick={handleRowClick} />
           <Pagination
-            currentPage={pagination.current_page}
-            totalPages={pagination.total_pages}
+            currentPage={currentPage}
+            totalPages={totalPages}
             onPageChange={handlePageChange}
-            itemsPerPage={pagination.per_page}
-            totalItems={pagination.total_items}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
           />
         </>
       )}

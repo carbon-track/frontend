@@ -16,9 +16,8 @@ export default function MessagesPage() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     search: '',
-    type: '',
+    // 后端无 type/priority，移除前端对应字段
     status: '',
-    priority: '',
     sort: 'created_at_desc',
     page: 1,
     limit: 10
@@ -27,7 +26,17 @@ export default function MessagesPage() {
 
   const { data, isLoading, error, isFetching } = useQuery(
     ['messages', filters],
-    () => messageAPI.getMessages(filters),
+    () => {
+      // 将前端 status 转换为后端 is_read 查询参数
+      const params = { ...filters };
+      if (params.status === 'unread') {
+        params.is_read = 0;
+      } else if (params.status === 'read') {
+        params.is_read = 1;
+      }
+      delete params.status;
+      return messageAPI.getMessages(params);
+    },
     { keepPreviousData: true }
   );
 
@@ -36,9 +45,10 @@ export default function MessagesPage() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries('messages');
+        queryClient.invalidateQueries('unreadCount');
         toast.success(t('messages.markReadSuccess'));
         if (selectedMessage) {
-          setSelectedMessage(prev => ({ ...prev, status: 'read' }));
+          setSelectedMessage(prev => ({ ...prev, is_read: true }));
         }
       },
       onError: () => {
@@ -52,6 +62,7 @@ export default function MessagesPage() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries('messages');
+        queryClient.invalidateQueries('unreadCount');
         toast.success(t('messages.deleteSuccess'));
         setSelectedMessage(null);
       },
@@ -66,6 +77,7 @@ export default function MessagesPage() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries('messages');
+        queryClient.invalidateQueries('unreadCount');
         toast.success(t('messages.markAllReadSuccess'));
       },
       onError: () => {
@@ -84,7 +96,7 @@ export default function MessagesPage() {
 
   const handleRowClick = (message) => {
     setSelectedMessage(message);
-    if (message.status === 'unread') {
+    if (!message.is_read) {
       markReadMutation.mutate(message.id);
     }
   };
@@ -108,7 +120,13 @@ export default function MessagesPage() {
   };
 
   const messages = data?.data?.data || [];
-  const pagination = data?.data?.pagination || {};
+  const rawPagination = data?.data?.pagination || {};
+  const pagination = {
+    current_page: rawPagination.current_page ?? rawPagination.page ?? 1,
+    total_pages: rawPagination.total_pages ?? rawPagination.pages ?? 1,
+    per_page: rawPagination.per_page ?? rawPagination.limit ?? 10,
+    total_items: rawPagination.total_items ?? rawPagination.total ?? messages.length
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -121,7 +139,7 @@ export default function MessagesPage() {
           <Button
             variant="outline"
             onClick={handleMarkAllRead}
-            disabled={markAllReadMutation.isLoading || messages.filter(m => m.status === 'unread').length === 0}
+            disabled={markAllReadMutation.isLoading || messages.filter(m => !m.is_read).length === 0}
           >
             <MailOpen className="h-4 w-4 mr-2" /> {t('messages.markAllRead')}
           </Button>

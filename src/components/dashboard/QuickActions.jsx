@@ -80,7 +80,8 @@ export function QuickActions({ userStats = {}, onActionClick }) {
       </CardHeader>
       
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {/* 固定最多两列：避免在右侧 1/3 宽容器内出现三列导致过窄/错位 */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {actions.map((action) => {
             const Icon = action.icon;
             
@@ -88,13 +89,13 @@ export function QuickActions({ userStats = {}, onActionClick }) {
               <Button
                 key={action.id}
                 variant={action.primary ? "default" : "outline"}
-                className={`h-auto p-4 flex flex-col items-start gap-3 relative ${
+                className={`h-auto w-full p-4 flex flex-col items-start justify-start text-left gap-3 relative ${
                   action.primary ? action.color : 'hover:bg-gray-50'
                 }`}
                 onClick={() => handleActionClick(action)}
               >
                 {action.badge && (
-                  <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
                     {action.badge > 99 ? '99+' : action.badge}
                   </div>
                 )}
@@ -112,7 +113,7 @@ export function QuickActions({ userStats = {}, onActionClick }) {
                     }`} />
                   </div>
                   
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left break-words">
                     <div className={`font-medium text-sm ${
                       action.primary 
                         ? 'text-white' 

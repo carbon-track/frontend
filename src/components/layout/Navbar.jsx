@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { checkAuthStatus, authAPI } from '../../lib/auth';
+import { useUnreadMessagesCount } from '../../hooks/useUnreadMessagesCount';
 import LanguageSwitcher from '../LanguageSwitcher';
 import { Button } from '../ui/Button';
 
@@ -24,25 +25,26 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [notifications, setNotifications] = useState(0);
+  const { count: unreadCount, isLoading: unreadLoading } = useUnreadMessagesCount();
   const navigate = useNavigate();
 
   useEffect(() => {
     const { isAuthenticated: authStatus, user: currentUser } = checkAuthStatus();
     setIsAuthenticated(authStatus);
     setUser(currentUser);
-    
-    // 模拟获取通知数量
-    if (authStatus) {
-      setNotifications(3); // 这里应该从API获取
-    }
   }, []);
 
-  const handleLogout = () => {
-    authAPI.logout();
-    setIsAuthenticated(false);
-    setUser(null);
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+      setIsAuthenticated(false);
+      setUser(null);
+    } catch (e) {
+      console.error('Logout failed:', e);
+    } finally {
+      // 统一跳转到登录页
+      navigate('/auth/login');
+    }
   };
 
   const toggleMobile = () => {
@@ -141,9 +143,9 @@ export function Navbar() {
                   onClick={() => navigate('/messages')}
                 >
                   <Bell className="h-4 w-4" />
-                  {notifications > 0 && (
+                  {!unreadLoading && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                      {notifications}
+                      {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
                 </Button>
@@ -259,9 +261,9 @@ export function Navbar() {
                   >
                     <Bell className="h-5 w-5" />
                     {t('nav.messages')}
-                    {notifications > 0 && (
+                    {!unreadLoading && unreadCount > 0 && (
                       <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {notifications > 99 ? '99+' : notifications}
+                        {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </Link>

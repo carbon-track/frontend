@@ -14,18 +14,13 @@ export function UserManagement() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     search: '',
-    is_admin: '', // 用于后端过滤
+    role: '', // 使用后端支持的 role 过滤（admin|user）
     status: '',
     page: 1,
     limit: 10,
     sort: 'created_at_desc'
   });
-
-  // 过滤器 role 选项映射为 is_admin
   const filterParams = { ...filters };
-  if (filters.is_admin === '') {
-    delete filterParams.is_admin;
-  }
   const { data, isLoading, error, isFetching } = useQuery(
     ['adminUsers', filterParams],
     () => adminAPI.getUsers(filterParams),
@@ -61,16 +56,7 @@ export function UserManagement() {
   );
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => {
-      if (key === 'role') {
-        // role 选项映射为 is_admin
-        let is_admin = '';
-        if (value === 'admin') is_admin = '1';
-        else if (value === 'user') is_admin = '0';
-        return { ...prev, is_admin, page: 1 };
-      }
-      return { ...prev, [key]: value, page: 1 };
-    });
+    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const handlePageChange = (page) => {
@@ -116,7 +102,7 @@ export function UserManagement() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.users.role')}</label>
             <select
-              value={filters.is_admin === '' ? '' : (filters.is_admin === '1' ? 'admin' : 'user')}
+              value={filters.role}
               onChange={(e) => handleFilterChange('role', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >

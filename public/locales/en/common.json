@@ -197,7 +197,6 @@
     "title": "Carbon Reduction Activities",
     "description": "Record your environmental activities and track your carbon footprint reduction",
     "record": "Record Activity",
-    "history": "History",
     "selectActivityFirst": "Please select an activity first",
     "category": "Category",
     "unit": "Unit",
@@ -215,12 +214,13 @@
       "daily": "Daily Life",
       "transport": "Transportation",
       "consumption": "Consumption",
-      "environmental": "Environmental",
+      "environmental": "Environmental Action",
       "lifestyle": "Lifestyle",
-      "energy": "Energy",
-      "water": "Water",
-      "waste": "Waste",
-      "travel": "Travel"
+      "energy": "Energy Saving",
+      "water": "Water Conservation",
+      "waste": "Waste Management",
+      "travel": "Green Travel",
+      "unknown": "Unknown Category"
     },
     "form": {
       "selectActivity": "Select Activity",
@@ -262,10 +262,35 @@
     "table": {
       "activity": "Activity",
       "data": "Data",
+      "carbonSaved": "Carbon Saved",
       "points": "Points",
       "status": "Status",
       "date": "Date",
       "actions": "Actions"
+    },
+    "history": {
+      "title": "Activity History",
+      "subtitle": "View and manage your submitted carbon reduction activities",
+      "noActivitiesFound": "No activities found",
+      "tryDifferentFilters": "Try adjusting your filters or search terms"
+    },
+    "filters": {
+      "title": "Filters",
+      "searchPlaceholder": "Search by activity name or description...",
+      "category": "Category",
+      "allCategories": "All Categories",
+      "status": "Status",
+      "allStatus": "All Status",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "activeFilters": "Active Filters"
+    },
+    "detail": {
+      "title": "Activity Details",
+      "subtitle": "View detailed information about this activity",
+      "notes": "Notes",
+      "proofImages": "Proof Images",
+      "rejectionReason": "Rejection Reason"
     }
   },
   "products": {
@@ -415,6 +440,15 @@
     "detail": {
       "title": "Message Details",
       "subtitle": "View detailed information about this message"
+    },
+    "filters": {
+      "title": "Filter Messages",
+      "searchPlaceholder": "Search by subject or content",
+      "status": "Status",
+      "allStatus": "All Status",
+      "priorityHighToLow": "Priority: High to Low",
+      "priorityLowToHigh": "Priority: Low to High",
+      "activeFilters": "Active Filters"
     },
     "priority": {
       "title": "Priority",
@@ -582,7 +616,6 @@
     "view": "View",
     "search": "Search",
     "filter": "Filter",
-    "sort": "Sort",
     "refresh": "Refresh",
     "back": "Back",
     "next": "Next",
@@ -608,7 +641,14 @@
     "share": "Share",
     "print": "Print",
     "export": "Export",
-    "import": "Import"
+    "import": "Import",
+    "sort": {
+      "sortBy": "Sort By",
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "pointsHighToLow": "Points: High to Low",
+      "pointsLowToHigh": "Points: Low to High"
+    }
   },
   "validation": {
     "required": "This field is required",
@@ -711,18 +751,52 @@
   },
   "units": {
     "times": "times",
+    "time": "times",
     "hours": "hours",
+    "hour": "hour",
+    "h": "h",
+    "hr": "hr",
     "days": "days",
+    "day": "day",
+    "d": "d",
     "kg": "kg",
+    "kilogram": "kilogram",
+    "kilograms": "kilograms",
     "liters": "liters",
+    "liter": "liter",
+    "litre": "litre",
+    "litres": "litres",
+    "l": "L",
+    "L": "L",
     "km": "km",
+    "kilometer": "kilometer",
+    "kilometers": "kilometers",
     "kWh": "kWh",
+    "kwh": "kWh",
+    "KWH": "kWh",
     "sheets": "sheets",
+    "sheet": "sheet",
     "items": "items",
+    "item": "item",
     "books": "books",
+    "book": "book",
     "trees": "trees",
+    "tree": "tree",
     "appliances": "appliances",
-    "minutes": "minutes"
+    "appliance": "appliance",
+    "minutes": "minutes",
+    "minute": "minute",
+    "min": "min",
+    "m": "m",
+    "cm": "cm",
+    "mm": "mm",
+    "g": "g",
+    "mg": "mg",
+    "t": "t",
+    "pcs": "pcs",
+    "piece": "piece",
+    "pieces": "pieces",
+    "unit": "unit"
   }
 }
 

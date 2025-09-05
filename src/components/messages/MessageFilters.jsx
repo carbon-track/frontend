@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, X, Mail, MailOpen, AlertCircle, Clock } from 'lucide-react';
+import { Search, Filter, X, Mail, MailOpen } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -22,37 +22,20 @@ export function MessageFilters({
   const clearFilters = () => {
     onFiltersChange({
       search: '',
-      type: '',
       status: '',
-      priority: '',
       sort: 'created_at_desc',
       page: 1
     });
   };
 
-  const hasActiveFilters = filters.search || filters.type || filters.status || filters.priority;
+  const hasActiveFilters = !!(filters.search || filters.status);
 
   const statusOptions = [
     { value: 'unread', label: t('messages.unread'), icon: <Mail className="h-4 w-4 text-blue-500" /> },
     { value: 'read', label: t('messages.read'), icon: <MailOpen className="h-4 w-4 text-gray-500" /> }
   ];
 
-  const typeOptions = [
-    { value: 'system', label: t('messages.types.system') },
-    { value: 'notification', label: t('messages.types.notification') },
-    { value: 'approval', label: t('messages.types.approval') },
-    { value: 'rejection', label: t('messages.types.rejection') },
-    { value: 'exchange', label: t('messages.types.exchange') },
-    { value: 'welcome', label: t('messages.types.welcome') },
-    { value: 'reminder', label: t('messages.types.reminder') }
-  ];
-
-  const priorityOptions = [
-    { value: 'low', label: t('messages.priority.low') },
-    { value: 'normal', label: t('messages.priority.normal') },
-    { value: 'high', label: t('messages.priority.high') },
-    { value: 'urgent', label: t('messages.priority.urgent') }
-  ];
+  // 后端无 type/priority 字段，移除相关选项
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
@@ -74,7 +57,7 @@ export function MessageFilters({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* 搜索框 */}
         <div className="lg:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -90,26 +73,6 @@ export function MessageFilters({
               className="pl-10"
             />
           </div>
-        </div>
-
-        {/* 类型筛选 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('messages.filters.type')}
-          </label>
-          <select
-            value={filters.type}
-            onChange={(e) => handleFilterChange('type', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            disabled={isLoading}
-          >
-            <option value="">{t('messages.filters.allTypes')}</option>
-            {typeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* 状态筛选 */}
@@ -133,25 +96,6 @@ export function MessageFilters({
         </div>
       </div>
 
-      {/* 优先级筛选 */}
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('messages.filters.priority')}
-        </label>
-        <select
-          value={filters.priority}
-          onChange={(e) => handleFilterChange('priority', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          disabled={isLoading}
-        >
-          <option value="">{t('messages.filters.allPriorities')}</option>
-          {priorityOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {/* 排序 */}
       <div className="mt-4">
@@ -192,33 +136,11 @@ export function MessageFilters({
                 </button>
               </span>
             )}
-            {filters.type && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                {t(`messages.types.${filters.type}`)}
-                <button
-                  onClick={() => handleFilterChange('type', '')}
-                  className="ml-1 hover:text-blue-600"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
             {filters.status && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
                 {t(`messages.${filters.status}`)}
                 <button
                   onClick={() => handleFilterChange('status', '')}
-                  className="ml-1 hover:text-blue-600"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-            {filters.priority && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                {t(`messages.priority.${filters.priority}`)}
-                <button
-                  onClick={() => handleFilterChange('priority', '')}
                   className="ml-1 hover:text-blue-600"
                 >
                   <X className="h-3 w-3" />
