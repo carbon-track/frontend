@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatNumber, formatDateSafe } from '../../lib/utils';
 import { adminAPI } from '../../lib/api';
 import { Loader2, CheckCircle, XCircle, Eye, Search, Filter } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -8,10 +9,10 @@ import { Input } from '../ui/Input';
 import { Alert, AlertTitle, AlertDescription } from '../ui/Alert';
 import { Pagination } from '../ui/Pagination';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+// merged into utils import above
 
 export function ExchangeManagement() {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     search: '',
@@ -182,7 +183,7 @@ export function ExchangeManagement() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(exchange.created_at), 'yyyy-MM-dd HH:mm')}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDateSafe(exchange.created_at, 'yyyy-MM-dd HH:mm')}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button variant="ghost" size="sm" onClick={() => handleViewDetails(exchange)} className="mr-2">
                         <Eye className="h-4 w-4" />
@@ -240,7 +241,7 @@ export function ExchangeManagement() {
 }
 
 function ExchangeDetailModal({ isOpen, onClose, exchange }) {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
 
   if (!isOpen || !exchange) return null;
 
@@ -296,7 +297,7 @@ function ExchangeDetailModal({ isOpen, onClose, exchange }) {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">{t('admin.exchanges.detail.exchangeDate')}</p>
-              <p className="text-gray-900">{format(new Date(exchange.created_at), 'yyyy-MM-dd HH:mm')}</p>
+              <p className="text-gray-900">{formatDateSafe(exchange.created_at, 'yyyy-MM-dd HH:mm')}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">{t('admin.exchanges.detail.address')}</p>

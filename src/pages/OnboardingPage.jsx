@@ -135,7 +135,7 @@ export default function OnboardingPage() {
         // 更新本地用户缓存（优先使用后端返回的完整用户数据）
         const newUser = res.data?.data ? res.data.data : { ...(user || {}), ...payload };
         userManager.setUser(newUser);
-        try { sessionStorage.removeItem('onboarding_skipped'); } catch (_) {}
+  try { sessionStorage.removeItem('onboarding_skipped'); } catch { /* no-op */ }
         setSuccess(t('onboarding.saved'));
         setTimeout(() => navigate('/dashboard', { replace: true }), 800);
       } else {
@@ -231,7 +231,7 @@ export default function OnboardingPage() {
                   variant="ghost"
                   className="flex-1"
                   onClick={() => {
-                    try { sessionStorage.setItem('onboarding_skipped', '1'); } catch (_) {}
+                    try { sessionStorage.setItem('onboarding_skipped', '1'); } catch { /* no-op */ }
                     navigate('/dashboard');
                   }}
                 >

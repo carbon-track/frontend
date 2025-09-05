@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './lib/i18n.js' // 初始化i18n
 import App from './App.jsx'
+import { QueryClientProvider } from 'react-query';
+import { queryClient } from './lib/react-query';
 
 // 首次加载强制重置本地登录态（清一次历史token），确保“默认未登录”
 (() => {
@@ -23,8 +25,10 @@ const LoadingFallback = () => (
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Suspense fallback={<LoadingFallback />}>
-      <App />
-    </Suspense>
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<LoadingFallback />}>
+        <App />
+      </Suspense>
+    </QueryClientProvider>
   </StrictMode>,
 )

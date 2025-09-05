@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Calculator, Calendar, FileText, Upload, AlertCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -13,7 +13,6 @@ export function DataInputForm({
   onCalculate, 
   onSubmit, 
   calculationResult, 
-  isCalculating, 
   isSubmitting 
 }) {
   const { t } = useTranslation();
@@ -24,7 +23,6 @@ export function DataInputForm({
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -35,17 +33,48 @@ export function DataInputForm({
 
   const watchedData = watch('data');
 
-  // 当输入数据变化时自动计算
+  // 避免在开发模式 StrictMode 下的双调用，以及快速输入引发的请求风暴：
+  // - 使用 debounce（300ms）
+  // - 使用 lastCalcKeyRef 记录上次计算的 key（activityId+data），相同时不重复调用
+  const lastCalcKeyRef = useRef('');
+  const debounceTimerRef = useRef(null);
+
   useEffect(() => {
-    if (activity && watchedData && parseFloat(watchedData) > 0) {
-      const numericData = parseFloat(watchedData);
-      if (!isNaN(numericData)) {
-        onCalculate(numericData);
-        setShowCalculation(true);
-      }
-    } else {
-      setShowCalculation(false);
+    const activityId = activity?.id || activity?.uuid || '';
+    const val = watchedData;
+
+    // 清理上一次的定时器
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
     }
+
+    // 输入为空或非正数时隐藏计算结果
+    const parsed = parseFloat(val);
+    if (!activityId || !val || isNaN(parsed) || parsed <= 0) {
+      setShowCalculation(false);
+      return;
+    }
+
+    // 设置防抖
+    debounceTimerRef.current = setTimeout(() => {
+      const key = `${activityId}::${parsed}`;
+      if (lastCalcKeyRef.current === key) {
+        // 与上次相同参数，避免重复调用
+        setShowCalculation(true);
+        return;
+      }
+      lastCalcKeyRef.current = key;
+      onCalculate(parsed);
+      setShowCalculation(true);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
   }, [activity, watchedData, onCalculate]);
 
   const onFormSubmit = (data) => {
@@ -224,7 +253,11 @@ export function DataInputForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-white rounded-lg p-4">
                         <div className="text-2xl font-bold text-green-600">
-                          {calculationResult.carbon_saved?.toFixed(2) || '0.00'}
+                          {(() => {
+                            const v = calculationResult.carbon_saved;
+                            const num = typeof v === 'number' ? v : Number(v);
+                            return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+                          })()}
                         </div>
                         <div className="text-sm text-gray-600">
                           {t('activities.carbonSaved')} (kg CO₂)

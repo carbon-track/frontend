@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { X, ShoppingCart, Package, MapPin, Phone, MessageSquare } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatNumber } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 
 export function ExchangeModal({ product, userPoints, isOpen, onClose, onConfirm, isLoading }) {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState(1);
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [contactPhone, setContactPhone] = useState('');

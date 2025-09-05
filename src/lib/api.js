@@ -14,7 +14,7 @@ const normalizeBaseUrl = (url) => {
     u = u + '/v1';
     // 在开发环境提供一次性提示，帮助发现错误配置
     if (typeof window !== 'undefined' && typeof console !== 'undefined') {
-      try { console.info('[api] VITE_API_URL 末尾为 /api，已自动追加 /v1 ->', u); } catch (_) {}
+      console.info('[api] VITE_API_URL 末尾为 /api，已自动追加 /v1 ->', u);
     }
   }
   return u;
@@ -30,6 +30,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 针对 calculate 的并发请求控制（后发先至，取消上一次未完成的计算请求）
+let calculateAbortController = null;
 
 // 请求拦截器 - 添加认证token
 api.interceptors.request.use(
@@ -138,12 +141,23 @@ export const carbonAPI = {
   getActivity: (id) => api.get(`/carbon-activities/${id}`),
   
   // 计算碳减排（不创建记录） - 后端期望 { activity_id, data }
+  // 使用 AbortController 取消上一次未完成的请求，避免竞态与请求风暴
   calculate: (activityId, data) => {
-    const requestBody = {
-      activity_id: activityId,
-      data: data
-    };
-    return api.post('/carbon-track/calculate', requestBody);
+    const requestBody = { activity_id: activityId, data };
+    // 取消上一次未完成的请求
+    if (calculateAbortController) {
+      try { calculateAbortController.abort(); } catch { /* ignore */ }
+    }
+    const controller = new AbortController();
+    calculateAbortController = controller;
+    return api
+      .post('/carbon-track/calculate', requestBody, { signal: controller.signal })
+      .finally(() => {
+        // 仅当当前 controller 仍为最新时清理
+        if (calculateAbortController === controller) {
+          calculateAbortController = null;
+        }
+      });
   },
   
   // 记录碳减排活动 - 后端期望 { activity_id, amount, date, description?, images?, unit? }
@@ -181,10 +195,10 @@ export const carbonAPI = {
   getPointsHistory: (params = {}) => api.get('/users/me/points-history', { params }),
   
   // 获取图表数据
-  getChartData: () => api.get('/users/me/chart-data'),
+  getChartData: (params = {}) => api.get('/users/me/chart-data', { params }),
   
   // 获取最近活动
-  getRecentActivities: () => api.get('/users/me/activities'),
+  getRecentActivities: (params = {}) => api.get('/users/me/activities', { params }),
 };
 
 export const productAPI = {

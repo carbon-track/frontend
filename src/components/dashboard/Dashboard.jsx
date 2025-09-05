@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Leaf, Award, TrendingUp, Users } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { carbonAPI } from '../../lib/api';
@@ -17,19 +17,10 @@ export function Dashboard() {
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const didFetchRef = useRef(false);
 
-  useEffect(() => {
-    const { user: currentUser } = checkAuthStatus();
-    if (currentUser) {
-      setUser(currentUser);
-      fetchDashboardData();
-    } else {
-      setError(t('dashboard.notLoggedIn'));
-      setLoading(false);
-    }
-  }, [t]);
-
-  const fetchDashboardData = async () => {
+  // 先声明，供后续 useEffect 使用，避免 TDZ 报错
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -56,7 +47,23 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    // 防止在开发模式下 StrictMode 导致的重复执行
+    if (didFetchRef.current) return;
+    didFetchRef.current = true;
+
+    const { user: currentUser } = checkAuthStatus();
+    if (currentUser) {
+      setUser(currentUser);
+      fetchDashboardData();
+    } else {
+      setError(t('dashboard.notLoggedIn'));
+      setLoading(false);
+    }
+  }, [t, fetchDashboardData]);
+
 
   const handleQuickAction = (action) => {
     // 处理快速操作点击

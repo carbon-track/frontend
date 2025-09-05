@@ -2,20 +2,30 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import RouteErrorBoundary from '../common/RouteErrorBoundary';
+import { useTranslation } from '../../hooks/useTranslation';
+import PropTypes from 'prop-types';
 
 export function Layout({ showFooter = true }) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <main className="flex-1">
-        <Outlet />
+        <RouteErrorBoundary t={t}>
+          <Outlet />
+        </RouteErrorBoundary>
       </main>
       
       {showFooter && <Footer />}
     </div>
   );
 }
+
+Layout.propTypes = {
+  showFooter: PropTypes.bool,
+};
 
 // 简化布局（不显示页脚）
 export function SimpleLayout() {

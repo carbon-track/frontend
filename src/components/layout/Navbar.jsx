@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -8,7 +8,6 @@ import {
   Calculator, 
   BarChart3, 
   ShoppingBag, 
-  MessageSquare, 
   User, 
   Settings, 
   LogOut,
@@ -26,6 +25,7 @@ export function Navbar() {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const { isAuthenticated: authStatus, user: currentUser } = checkAuthStatus();
@@ -81,13 +81,6 @@ export function Navbar() {
       label: t('nav.products'),
       icon: ShoppingBag,
       auth: true
-    },
-    {
-      path: '/messages',
-      label: t('nav.messages'),
-      icon: MessageSquare,
-      auth: true,
-      badge: notifications
     }
   ];
 
@@ -139,8 +132,14 @@ export function Navbar() {
             
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                {/* 通知按钮 */}
-                <Button variant="ghost" size="sm" className="relative">
+                {/* 站内信图标按钮，仅图标，无文字，点击跳转/messages */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative"
+                  aria-label={t('nav.messages')}
+                  onClick={() => navigate('/messages')}
+                >
                   <Bell className="h-4 w-4" />
                   {notifications > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
@@ -148,7 +147,6 @@ export function Navbar() {
                     </span>
                   )}
                 </Button>
-                
                 {/* 用户菜单 */}
                 <div className="relative group">
                   <Button variant="ghost" className="flex items-center gap-2">
@@ -253,6 +251,20 @@ export function Navbar() {
                       {user?.username}
                     </span>
                   </div>
+                  
+                  <Link
+                    to="/messages"
+                    onClick={closeMobile}
+                    className="flex items-center gap-3 px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md relative"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {t('nav.messages')}
+                    {notifications > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {notifications > 99 ? '99+' : notifications}
+                      </span>
+                    )}
+                  </Link>
                   
                   <Link
                     to="/profile"

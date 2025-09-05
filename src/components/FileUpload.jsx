@@ -242,7 +242,7 @@ const FileUpload = ({
           }
         </p>
         <p className="text-xs text-gray-400 mt-2">
-          {t('upload.supportedFormats')}: JPG, PNG, GIF, WebP (最大 5MB)
+          {t('upload.supportedFormats')}: {t('upload.supportedFormatsDetail')}
         </p>
       </div>
 

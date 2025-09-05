@@ -11,7 +11,8 @@ import { Globe, Check } from 'lucide-react';
 import { supportedLanguages, changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 
 const LanguageSwitcher = ({ variant = 'default', size = 'default', showText = true }) => {
-  const { t } = useTranslation();
+  // i18n instance is initialized globally; we don't use t() here directly.
+  useTranslation();
   const [isChanging, setIsChanging] = useState(false);
   const currentLanguage = getCurrentLanguage();
 

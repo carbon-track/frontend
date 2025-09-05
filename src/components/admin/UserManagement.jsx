@@ -14,16 +14,21 @@ export function UserManagement() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     search: '',
-    role: '',
+    is_admin: '', // 用于后端过滤
     status: '',
     page: 1,
     limit: 10,
     sort: 'created_at_desc'
   });
 
+  // 过滤器 role 选项映射为 is_admin
+  const filterParams = { ...filters };
+  if (filters.is_admin === '') {
+    delete filterParams.is_admin;
+  }
   const { data, isLoading, error, isFetching } = useQuery(
-    ['adminUsers', filters],
-    () => adminAPI.getUsers(filters),
+    ['adminUsers', filterParams],
+    () => adminAPI.getUsers(filterParams),
     { keepPreviousData: true }
   );
 
@@ -56,7 +61,16 @@ export function UserManagement() {
   );
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+    setFilters(prev => {
+      if (key === 'role') {
+        // role 选项映射为 is_admin
+        let is_admin = '';
+        if (value === 'admin') is_admin = '1';
+        else if (value === 'user') is_admin = '0';
+        return { ...prev, is_admin, page: 1 };
+      }
+      return { ...prev, [key]: value, page: 1 };
+    });
   };
 
   const handlePageChange = (page) => {
@@ -64,11 +78,9 @@ export function UserManagement() {
   };
 
   const handleEditUser = (user) => {
-    // In a real app, this would open a modal or navigate to an edit page
-    const newRole = prompt(`Enter new role for ${user.username} (user, admin):`, user.role);
-    if (newRole && ['user', 'admin'].includes(newRole)) {
-      updateUserMutation.mutate({ id: user.id, data: { role: newRole } });
-    }
+    // 简化处理：弹窗切换是否为管理员
+    const makeAdmin = window.confirm(t('admin.users.confirmToggleAdmin', { username: user.username }));
+    updateUserMutation.mutate({ id: user.id, data: { is_admin: !!makeAdmin } });
   };
 
   const handleDeleteUser = (user) => {
@@ -77,8 +89,9 @@ export function UserManagement() {
     }
   };
 
-  const users = data?.data?.data || [];
-  const pagination = data?.data?.pagination || {};
+  // 后端返回结构：{ success, data: { users: [...], pagination: {...} } }
+  const users = data?.data?.data?.users || [];
+  const pagination = data?.data?.data?.pagination || {};
 
   return (
     <div className="space-y-6">
@@ -103,7 +116,7 @@ export function UserManagement() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.users.role')}</label>
             <select
-              value={filters.role}
+              value={filters.is_admin === '' ? '' : (filters.is_admin === '1' ? 'admin' : 'user')}
               onChange={(e) => handleFilterChange('role', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
@@ -160,7 +173,7 @@ export function UserManagement() {
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t(`admin.users.role${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.is_admin ? t('admin.users.roleAdmin') : t('admin.users.roleUser')}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {user.status === 'active' ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -172,7 +185,7 @@ export function UserManagement() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.total_points}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.points}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} className="mr-2">
                         <Edit className="h-4 w-4" />

@@ -1,11 +1,12 @@
 import React from 'react';
 import { ShoppingCart, Star, Package, Clock } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatNumber } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 
 export function ProductCard({ product, onExchange, userPoints = 0 }) {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
 
   const canAfford = userPoints >= product.points_required;
   const isAvailable = product.is_available;

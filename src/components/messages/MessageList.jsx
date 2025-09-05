@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { format } from 'date-fns';
+import { formatDateSafe } from '../../lib/utils';
 import { Mail, MailOpen, AlertCircle, CheckCircle, Clock, XCircle, Eye, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -96,7 +96,7 @@ export function MessageList({ messages, onRowClick, onMarkRead, onDelete }) {
                 {t(`messages.${message.status}`)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(message.created_at), 'yyyy-MM-dd HH:mm')}
+                {formatDateSafe(message.created_at, 'yyyy-MM-dd HH:mm')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <Button

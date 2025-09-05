@@ -3,9 +3,11 @@ import { Clock, CheckCircle, XCircle, AlertCircle, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatNumber } from '../../lib/utils';
 
 export function RecentActivities({ activities = [], loading = false, onViewAll }) {
   const { t } = useTranslation();
+
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -139,11 +141,14 @@ export function RecentActivities({ activities = [], loading = false, onViewAll }
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <span>{formatDate(activity.created_at)}</span>
                     <span>{activity.data} {activity.unit}</span>
-                    {activity.carbon_saved && (
-                      <span className="text-green-600">
-                        {activity.carbon_saved.toFixed(2)} kg CO₂
-                      </span>
-                    )}
+                    {(() => {
+                      const formatted = formatNumber(activity.carbon_saved, 2);
+                      return formatted !== null ? (
+                        <span className="text-green-600">
+                          {formatted} kg CO₂
+                        </span>
+                      ) : null;
+                    })()}
                     {activity.points_earned && activity.status === 'approved' && (
                       <span className="text-blue-600">
                         +{activity.points_earned} {t('dashboard.points')}

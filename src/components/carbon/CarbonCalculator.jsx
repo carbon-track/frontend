@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { CheckCircle, ArrowLeft, Leaf } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { carbonAPI } from '../../lib/api';
@@ -33,14 +33,15 @@ export function CarbonCalculator() {
   };
 
   // 计算碳减排
-  const handleCalculate = async (data) => {
+  // 使用 useCallback 保持函数引用稳定，避免子组件 useEffect 因 onCalculate 引用变化而重复触发
+  const handleCalculate = useCallback(async (data) => {
     if (!selectedActivity) return;
 
     setIsCalculating(true);
     setError('');
 
     try {
-  const response = await carbonAPI.calculate(selectedActivity.id || selectedActivity.uuid, data);
+      const response = await carbonAPI.calculate(selectedActivity.id || selectedActivity.uuid, data);
 
       if (response.data.success) {
         setCalculationResult(response.data.data);
@@ -48,11 +49,16 @@ export function CarbonCalculator() {
         setError(response.data.message || t('activities.form.calculationFailed'));
       }
     } catch (err) {
-      setError(err.message || t('activities.form.calculationFailed'));
+      // 忽略被取消的请求（快速输入时会取消上一次未完成的计算）
+      const msg = err?.message || '';
+      if (err?.code === 'ERR_CANCELED' || /aborted|canceled/i.test(msg)) {
+        return;
+      }
+      setError(msg || t('activities.form.calculationFailed'));
     } finally {
       setIsCalculating(false);
     }
-  };
+  }, [selectedActivity, t]);
 
   // 提交记录
   const handleSubmit = async (formData) => {
@@ -217,7 +223,11 @@ export function CarbonCalculator() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {submitResult.carbon_saved?.toFixed(2) || '0.00'}
+                    {(() => {
+                      const v = submitResult.carbon_saved;
+                      const num = typeof v === 'number' ? v : Number(v);
+                      return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+                    })()}
                   </div>
                   <div className="text-sm text-gray-600">
                     {t('activities.carbonSaved')} (kg CO₂)

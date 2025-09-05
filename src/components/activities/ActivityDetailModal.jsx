@@ -1,12 +1,12 @@
 import React from 'react';
 import { X, CalendarDays, Info, Image as ImageIcon, MessageSquare, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { format } from 'date-fns';
+import { formatNumber, formatDateSafe } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 
 export function ActivityDetailModal({ activity, isOpen, onClose }) {
-  const { t, formatNumber } = useTranslation();
+   const { t } = useTranslation();
 
   if (!isOpen || !activity) return null;
 
@@ -68,19 +68,19 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.date')}</p>
-                <p className="text-gray-900">{format(new Date(activity.activity_date), 'yyyy-MM-dd')}</p>
+                  <p className="text-gray-900">{formatDateSafe(activity.activity_date, 'yyyy-MM-dd')}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.data')}</p>
-                <p className="text-gray-900">{formatNumber(activity.data_value)} {t(`units.${activity.activity_unit}`, activity.activity_unit)}</p>
+                 <p className="text-gray-900">{formatNumber(activity.data_value)} {t(`units.${activity.activity_unit}`, activity.activity_unit)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.carbonSaved')}</p>
-                <p className="text-green-600 font-semibold">{formatNumber(activity.carbon_saved)} kg CO2e</p>
+                 <p className="text-green-600 font-semibold">{formatNumber(activity.carbon_saved)} kg CO2e</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.points')}</p>
-                <p className="text-green-600 font-semibold">+{formatNumber(activity.points_earned)} {t('common.points')}</p>
+                 <p className="text-green-600 font-semibold">+{formatNumber(activity.points_earned)} {t('common.points')}</p>
               </div>
             </div>
 

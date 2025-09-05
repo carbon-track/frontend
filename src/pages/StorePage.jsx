@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Coins, Package, AlertCircle, CheckCircle, History } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { formatNumber } from '../lib/utils';
 import { checkAuthStatus } from '../lib/auth';
 import { productAPI } from '../lib/api';
 import { ProductCard } from '../components/store/ProductCard';
@@ -11,7 +12,7 @@ import { Alert } from '../components/ui/Alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 
 export default function StorePage() {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);

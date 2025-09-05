@@ -526,11 +526,48 @@
   },
   "messages": {
     "title": "消息中心",
+    "subtitle": "查看和管理您的通知和消息",
     "unread": "未读",
     "read": "已读",
     "all": "全部",
     "markAllRead": "全部标记为已读",
     "delete": "删除",
+    "deleteAll": "删除全部",
+    "noMessages": "暂无消息",
+    "noMessagesDesc": "您将在这里收到活动审批和系统更新的通知",
+    "noMessagesFound": "未找到消息",
+    "tryDifferentFilters": "请尝试调整筛选条件",
+    "loadError": "加载消息失败",
+    "markAsRead": "标记为已读",
+    "markAsUnread": "标记为未读",
+    "deleteMessage": "删除消息",
+    "markRead": "标记为已读",
+    "markReadSuccess": "消息已标记为已读",
+    "markReadFailed": "标记已读失败",
+    "markAllReadSuccess": "全部消息已标记为已读",
+    "markAllReadFailed": "标记全部已读失败",
+    "deleteSuccess": "消息删除成功",
+    "deleteFailed": "删除消息失败",
+    "deleteAllNotImplemented": "删除全部消息功能尚未实现",
+    "confirmDelete": "确定要删除此消息吗？",
+    "confirmMarkAllRead": "确定要将全部消息标记为已读吗？",
+    "confirmDeleteAll": "确定要删除全部消息吗？",
+    "type": "类型",
+    "status": "状态",
+    "date": "日期",
+    "subject": "主题",
+    "content": "内容",
+    "detail": {
+      "title": "消息详情",
+      "subtitle": "查看消息详情和内容"
+    },
+    "priority": {
+      "title": "优先级",
+      "low": "低",
+      "normal": "普通",
+      "high": "高",
+      "urgent": "紧急"
+    },
     "types": {
       "system": "系统消息",
       "notification": "通知",
@@ -539,12 +576,6 @@
       "exchange": "兑换确认",
       "welcome": "欢迎消息",
       "reminder": "提醒"
-    },
-    "priority": {
-      "low": "低",
-      "normal": "普通",
-      "high": "高",
-      "urgent": "紧急"
     }
   },
   "profile": {
@@ -566,7 +597,6 @@
   },
   "admin": {
     "title": "管理后台",
-    "users": "用户管理",
     "activities": "活动管理",
     "products": "商品管理",
     "transactions": "交易管理",
@@ -579,7 +609,48 @@
     "create": "创建",
     "edit": "编辑",
     "delete": "删除",
-    "restore": "恢复"
+    "restore": "恢复",
+    "tabs": {
+      "dashboard": "仪表盘",
+      "users": "用户管理",
+      "activities": "活动管理",
+      "products": "商品管理",
+      "exchanges": "兑换管理"
+    },
+    "dashboard": {
+      "title": "管理仪表盘",
+      "description": "查看平台关键指标与待处理事项",
+      "totalUsers": "用户总数",
+      "pendingActivities": "待审核活动",
+      "pendingExchanges": "待处理兑换"
+    },
+    "users": {
+      "confirmToggleAdmin": "是否将用户 {{username}} 设置为管理员？\n(点“确定”为管理员；“取消”为普通用户)",
+      "updateSuccess": "更新成功",
+      "updateFailed": "更新失败",
+      "deleteSuccess": "删除成功",
+      "deleteFailed": "删除失败",
+      "confirmDelete": "确定要删除用户 {{username}} 吗？",
+      "role": "角色",
+      "roleUser": "普通用户",
+      "roleAdmin": "管理员",
+      "status": "状态",
+      "statusActive": "启用",
+      "statusInactive": "禁用",
+      "title": "用户管理",
+      "description": "查看与管理平台用户",
+      "searchPlaceholder": "搜索用户名、邮箱或姓名",
+      "noUsersFound": "未找到用户",
+      "tryDifferentFilters": "请尝试修改筛选条件",
+      "table": {
+        "username": "用户名",
+        "email": "邮箱",
+        "role": "角色",
+        "status": "状态",
+        "points": "积分",
+        "actions": "操作"
+      }
+    }
   },
   "common": {
     "loading": "加载中...",
@@ -637,6 +708,7 @@
     "integer": "请输入整数"
   },
   "errors": {
+    "loadFailed": "加载失败",
     "network": "网络连接错误",
     "server": "服务器错误",
     "unauthorized": "未授权访问",
@@ -676,7 +748,22 @@
     "thisMonth": "本月",
     "lastMonth": "上月",
     "thisYear": "今年",
-    "lastYear": "去年"
+    "lastYear": "去年",
+    "daysAgo": "天前"
+  },
+  "upload": {
+    "dropFiles": "将文件拖拽到此处",
+    "clickOrDrag": "点击上传或将文件拖拽到此处",
+    "supportMultiple": "支持上传最多{{max}}个文件",
+    "supportSingle": "支持单个文件上传",
+    "supportedFormats": "支持的格式",
+    "supportedFormatsDetail": "JPG, PNG, GIF, WebP（最大 5MB）",
+    "pending": "上传中",
+    "success": "上传成功",
+    "error": "上传失败",
+    "uploading": "正在上传...",
+    "uploadFiles": "上传{{count}}个文件",
+    "uploadFile": "上传文件"
   },
   "units": {
     "times": "次",

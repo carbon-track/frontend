@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatNumber } from '../../lib/utils';
 import { adminAPI, productAPI } from '../../lib/api';
 import { Loader2, Edit, Trash2, PlusCircle, Search, Filter, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -8,10 +9,10 @@ import { Input } from '../ui/Input';
 import { Alert, AlertTitle, AlertDescription } from '../ui/Alert';
 import { Pagination } from '../ui/Pagination';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+// date-fns format not used here
 
 export function ProductManagement() {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     search: '',
@@ -257,7 +258,9 @@ export function ProductManagement() {
   );
 }
 
-function ProductFormModal({ isOpen, onClose, product, categories, onSubmit, isSubmitting }) {
+import { useForm } from 'react-hook-form';
+
+function ProductFormModal({ onClose, product, categories, onSubmit, isSubmitting }) {
   const { t } = useTranslation();
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: product || {

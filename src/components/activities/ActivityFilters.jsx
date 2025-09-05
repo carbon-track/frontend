@@ -12,6 +12,19 @@ export function ActivityFilters({
 }) {
   const { t } = useTranslation();
 
+  // 将 categories 归一化为数组，兼容多种返回结构：
+  // - 数组: 直接使用
+  // - 对象映射: 使用对象键作为类别名 [{ category: key }]
+  // - 字符串: 单值转为数组
+  const normalizedCategories = React.useMemo(() => {
+    if (Array.isArray(categories)) return categories;
+    if (categories && typeof categories === 'object') {
+      return Object.keys(categories).map((key) => ({ category: key }));
+    }
+    if (typeof categories === 'string') return [{ category: categories }];
+    return [];
+  }, [categories]);
+
   const handleFilterChange = (key, value) => {
     onFiltersChange({
       ...filters,
@@ -97,7 +110,7 @@ export function ActivityFilters({
             disabled={isLoading}
           >
             <option value="">{t('activities.filters.allCategories')}</option>
-            {categories.map((category) => (
+            {normalizedCategories.map((category) => (
               <option key={category.category} value={category.category}>
                 {t(`activities.categories.${category.category}`, category.category)}
               </option>

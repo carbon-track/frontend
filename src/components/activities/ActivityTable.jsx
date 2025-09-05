@@ -1,11 +1,11 @@
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { format } from 'date-fns';
+import { formatNumber, formatDateSafe } from '../../lib/utils';
 import { AlertCircle, CheckCircle, Clock, XCircle, Eye } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export function ActivityTable({ activities, onRowClick }) {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -111,7 +111,7 @@ export function ActivityTable({ activities, onRowClick }) {
                 {getStatusBadge(activity.status)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(activity.activity_date), 'yyyy-MM-dd')}
+                {formatDateSafe(activity.activity_date, 'yyyy-MM-dd')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <Button

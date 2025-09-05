@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { useTranslation } from '../hooks/useTranslation';
 import { ActivityFilters } from '../components/activities/ActivityFilters';
@@ -49,7 +49,17 @@ export default function ActivitiesPage() {
 
   const activities = data?.data?.data || [];
   const pagination = data?.data?.pagination || {};
-  const categories = categoriesData?.data?.data || [];
+  // 将类别数据在页面层进行一次归一化，避免下游组件多处判空
+  const categoriesRaw = categoriesData?.data?.data;
+  const categories = React.useMemo(() => {
+    const source = categoriesRaw;
+    if (Array.isArray(source)) return source;
+    if (source && typeof source === 'object') {
+      return Object.keys(source).map((key) => ({ category: key }));
+    }
+    if (typeof source === 'string') return [{ category: source }];
+    return [];
+  }, [categoriesRaw]);
 
   return (
     <div className="container mx-auto py-8 px-4">

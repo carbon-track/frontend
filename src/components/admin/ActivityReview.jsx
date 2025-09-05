@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatNumber, formatDateSafe } from '../../lib/utils';
 import { adminAPI } from '../../lib/api';
 import { Loader2, CheckCircle, XCircle, Eye, Search, Filter, MessageSquare } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -9,10 +10,10 @@ import { Alert, AlertTitle, AlertDescription } from '../ui/Alert';
 import { Pagination } from '../ui/Pagination';
 import { ActivityDetailModal } from '../activities/ActivityDetailModal';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+// merged into utils import above
 
 export function ActivityReview() {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     search: '',
@@ -22,7 +23,6 @@ export function ActivityReview() {
     sort: 'created_at_asc' // Oldest first for review
   });
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
 
   const { data, isLoading, error, isFetching } = useQuery(
     ['adminActivities', filters],
@@ -38,7 +38,6 @@ export function ActivityReview() {
         queryClient.invalidateQueries('activities'); // Invalidate user's activities as well
         toast.success(t('admin.activities.reviewSuccess'));
         setSelectedActivity(null);
-        setRejectionReason('');
       },
       onError: (err) => {
         toast.error(t('admin.activities.reviewFailed'));
@@ -179,7 +178,7 @@ export function ActivityReview() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(activity.created_at), 'yyyy-MM-dd')}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDateSafe(activity.created_at, 'yyyy-MM-dd')}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button variant="ghost" size="sm" onClick={() => handleViewDetails(activity)} className="mr-2">
                         <Eye className="h-4 w-4" />

@@ -11,10 +11,7 @@ export const useTranslation = (ns = 'common') => {
   // 获取当前语言
   const currentLanguage = getCurrentLanguage();
   
-  // 扩展的翻译函数，支持更多格式化选项
-  const translate = (key, options = {}) => {
-    return t(key, options);
-  };
+  // 直接使用 react-i18next 提供的 t，避免每次渲染创建新函数导致依赖 [t] 的 useEffect 反复触发
   
   // 翻译并格式化数字
   const tNumber = (key, value, options = {}) => {
@@ -155,7 +152,7 @@ export const useTranslation = (ns = 'common') => {
   
   return {
     // 原始的react-i18next方法
-    t: translate,
+    t,
     i18n,
     ready,
     

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery, useQueryClient } from 'react-query';
 import { useTranslation } from '../hooks/useTranslation';
 import { userAPI } from '../lib/api';
@@ -25,7 +25,7 @@ export default function ProfilePage() {
     queryClient.invalidateQueries('currentUser'); // Invalidate to refetch updated user data
   };
 
-  const handleAvatarChange = (newAvatarId) => {
+  const handleAvatarChange = () => {
     // Optionally update local state or re-fetch user data if needed
     queryClient.invalidateQueries('currentUser');
   };

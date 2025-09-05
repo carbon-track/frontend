@@ -1,9 +1,10 @@
 import React from 'react';
-import { X, Mail, MailOpen, AlertCircle, Clock, MessageSquare } from 'lucide-react';
+import { Mail, MailOpen, MessageSquare, Info } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { format } from 'date-fns';
+import { formatDateSafe } from '../../lib/utils';
 import { Button } from '../ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import PropTypes from 'prop-types';
 
 export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
   const { t } = useTranslation();
@@ -42,76 +43,79 @@ export function MessageDetailModal({ message, isOpen, onClose, onMarkRead }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <Card className="border-0 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div>
-              <CardTitle className="text-xl">{t('messages.detail.title')}</CardTitle>
-              <CardDescription>{t('messages.detail.subtitle')}</CardDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose?.(); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl">{t('messages.detail.title')}</DialogTitle>
+          <DialogDescription>{t('messages.detail.subtitle')}</DialogDescription>
+        </DialogHeader>
 
-          <CardContent className="space-y-6">
-            {/* 基本信息 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">{t('messages.type')}</p>
-                <p className="text-lg font-semibold text-gray-900">{t(`messages.types.${message.type}`, message.type)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">{t('messages.status')}</p>
-                {getStatusBadge(message.status)}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">{t('messages.priority.title')}</p>
-                {getPriorityBadge(message.priority)}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">{t('messages.date')}</p>
-                <p className="text-gray-900">{format(new Date(message.created_at), 'yyyy-MM-dd HH:mm')}</p>
-              </div>
-            </div>
-
-            {/* 主题和内容 */}
+        <div className="space-y-6">
+          {/* 基本信息 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
-                <MessageSquare className="h-4 w-4 mr-2" />{t('messages.subject')}
-              </h4>
-              <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{message.subject}</p>
+              <p className="text-sm font-medium text-gray-500">{t('messages.type')}</p>
+              <p className="text-lg font-semibold text-gray-900">{t(`messages.types.${message.type}`, message.type)}</p>
             </div>
             <div>
-              <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
-                <Info className="h-4 w-4 mr-2" />{t('messages.content')}
-              </h4>
-              <div className="text-gray-700 bg-gray-50 p-3 rounded-md" dangerouslySetInnerHTML={{ __html: message.content }}></div>
+              <p className="text-sm font-medium text-gray-500">{t('messages.status')}</p>
+              {getStatusBadge(message.status)}
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">{t('messages.priority.title')}</p>
+              {getPriorityBadge(message.priority)}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">{t('messages.date')}</p>
+              <p className="text-gray-900">{formatDateSafe(message.created_at, 'yyyy-MM-dd HH:mm')}</p>
+            </div>
+          </div>
 
-            {/* 操作按钮 */}
-            <div className="flex justify-end pt-4">
-              {message.status === 'unread' && (
-                <Button
-                  variant="outline"
-                  onClick={() => onMarkRead(message.id)}
-                  className="mr-2"
-                >
-                  <MailOpen className="h-4 w-4 mr-1" /> {t('messages.markRead')}
-                </Button>
-              )}
-              <Button onClick={onClose}>{t('common.close')}</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          {/* 主题和内容 */}
+          <div>
+            <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
+              <MessageSquare className="h-4 w-4 mr-2" />{t('messages.subject')}
+            </h4>
+            <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{message.subject}</p>
+          </div>
+          <div>
+            <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
+              <Info className="h-4 w-4 mr-2" />{t('messages.content')}
+            </h4>
+            <div className="text-gray-700 bg-gray-50 p-3 rounded-md" dangerouslySetInnerHTML={{ __html: message.content }}></div>
+          </div>
+
+          {/* 操作按钮 */}
+          <DialogFooter className="pt-2">
+            {message.status === 'unread' && (
+              <Button
+                variant="outline"
+                onClick={() => onMarkRead(message.id)}
+                className="mr-2"
+              >
+                <MailOpen className="h-4 w-4 mr-1" /> {t('messages.markRead')}
+              </Button>
+            )}
+            <Button onClick={onClose}>{t('common.close')}</Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
+
+MessageDetailModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onMarkRead: PropTypes.func.isRequired,
+  message: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    type: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
+    priority: PropTypes.string,
+    subject: PropTypes.string,
+    created_at: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.instanceOf(Date)]).isRequired,
+    content: PropTypes.string,
+  }),
+};
 
