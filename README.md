@@ -41,3 +41,37 @@ VITE_TURNSTILE_SITE_KEY=你的_site_key
 - 登录与退出登录会清理该标记，避免在新会话延续跳过状态。
 - 学校创建与班级创建接口需要登录态（携带 `Authorization: Bearer <token>`），否则会返回 401；获取学校列表与班级列表为公开接口。
 
+## Admin 区域（管理员后台）
+
+本项目前端已将 `/admin` 页面拆分为嵌套路由结构，只有具备管理员权限（`user.is_admin = true`）的登录用户可访问。
+
+- 访问入口：
+	- 登录后，导航栏用户菜单中会出现“Admin/管理员后台”入口，点击跳转 `/admin`。
+	- 直接访问 `/admin` 时会自动重定向到 `/admin/dashboard`。
+
+- 路由结构（已懒加载）：
+	- `/admin/dashboard` 管理仪表盘（统计卡片、趋势图、手动刷新/自动轮询、卡片点击跳转等）。
+	- `/admin/users` 用户运维（搜索、编辑、积分增减等）。
+	- `/admin/activities` 活动审核（提交记录查看、预览、通过/驳回）。
+	- `/admin/products` 商品管理（增删改查）。
+	- `/admin/exchanges` 兑换管理（状态流转、备注）。
+	- `/admin/broadcast` 广播中心（站内系统消息群发）。
+
+- 主要文件：
+	- 布局与导航：`src/components/layout/AdminLayout.jsx`（顶部标题 + Tab 导航 + `<Outlet />`）。
+	- 路由定义：`src/router/index.jsx`（`/admin` 使用 `AdminRoute` 做管理员鉴权，并挂载各子页）。
+	- 子页面：`src/pages/admin/*.jsx`（Dashboard、Users、Activities、Products、Exchanges、Broadcast）。
+
+- 鉴权说明：
+	- 由 `src/components/auth/ProtectedRoute.jsx` 提供的 `AdminRoute` 组件实现，仅 `is_admin` 用户可访问。
+	- 若用户资料缺少 `school_id`/`class_name`，受保护路由会先引导到 `/onboarding` 完善资料（支持本会话临时跳过）。
+
+- 后端接口：
+	- 统计数据：`GET /admin/stats`（已修复与数据库结构对齐，`total_carbon_saved` 来自 `carbon_records` 聚合）。
+	- 其它接口详见后端 README 或 `src/lib/api.js` 中的 `adminAPI` 封装。
+
+- 开发/调试建议：
+	- 确保 `.env` 中 `VITE_API_URL` 指向正确的后端地址（建议以 `/api/v1` 结尾）。
+	- 本地快速预览：`pnpm dev` 启动后端与前端，再用管理员账号登录访问 `/admin`。
+	- 若不需要旧版合页式 Admin 页面，可移除未引用的 `src/pages/AdminPage.jsx`（当前路由未使用，保留不影响构建）。
+

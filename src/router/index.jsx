@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Layout, SimpleLayout, AuthLayout } from '../components/layout/Layout';
+import AdminLayout from '../components/layout/AdminLayout';
 import { ProtectedRoute, PublicRoute, AdminRoute } from '../components/auth/ProtectedRoute';
 
 // 页面组件（懒加载）
@@ -14,7 +15,12 @@ const ActivitiesPage = React.lazy(() => import('../pages/ActivitiesPage'));
 const StorePage = React.lazy(() => import('../pages/StorePage'));
 const MessagesPage = React.lazy(() => import('../pages/MessagesPage'));
 const ProfilePage = React.lazy(() => import('../pages/ProfilePage'));
-const AdminPage = React.lazy(() => import('../pages/AdminPage'));
+const AdminDashboardPage = React.lazy(() => import('../pages/admin/Dashboard'));
+const AdminUsersPage = React.lazy(() => import('../pages/admin/Users'));
+const AdminActivitiesPage = React.lazy(() => import('../pages/admin/Activities'));
+const AdminProductsPage = React.lazy(() => import('../pages/admin/Products'));
+const AdminExchangesPage = React.lazy(() => import('../pages/admin/Exchanges'));
+const AdminBroadcastPage = React.lazy(() => import('../pages/admin/Broadcast'));
 const NotFoundPage = React.lazy(() => import('../pages/NotFoundPage'));
 const OnboardingPage = React.lazy(() => import('../pages/OnboardingPage'));
 
@@ -169,15 +175,19 @@ export const router = createBrowserRouter([
     path: '/admin',
     element: (
       <AdminRoute>
-        <SimpleLayout />
+        <AdminLayout />
       </AdminRoute>
     ),
     children: [
       {
         index: true,
+        element: <Navigate to="/admin/dashboard" replace />
+      },
+      {
+        path: 'dashboard',
         element: (
           <React.Suspense fallback={<LoadingSpinner />}>
-            <AdminPage />
+            <AdminDashboardPage />
           </React.Suspense>
         )
       },
@@ -185,7 +195,7 @@ export const router = createBrowserRouter([
         path: 'users',
         element: (
           <React.Suspense fallback={<LoadingSpinner />}>
-            <div>用户管理页面</div>
+            <AdminUsersPage />
           </React.Suspense>
         )
       },
@@ -193,7 +203,7 @@ export const router = createBrowserRouter([
         path: 'activities',
         element: (
           <React.Suspense fallback={<LoadingSpinner />}>
-            <div>活动管理页面</div>
+            <AdminActivitiesPage />
           </React.Suspense>
         )
       },
@@ -201,15 +211,23 @@ export const router = createBrowserRouter([
         path: 'products',
         element: (
           <React.Suspense fallback={<LoadingSpinner />}>
-            <div>商品管理页面</div>
+            <AdminProductsPage />
           </React.Suspense>
         )
       },
       {
-        path: 'reviews',
+        path: 'exchanges',
         element: (
           <React.Suspense fallback={<LoadingSpinner />}>
-            <div>审核管理页面</div>
+            <AdminExchangesPage />
+          </React.Suspense>
+        )
+      },
+      {
+        path: 'broadcast',
+        element: (
+          <React.Suspense fallback={<LoadingSpinner />}>
+            <AdminBroadcastPage />
           </React.Suspense>
         )
       }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
 import { adminAPI } from '../../lib/api';
-import { Loader2, Edit, Trash2, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
+import { Loader2, Edit, Trash2, CheckCircle, XCircle, Search, PlusCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Alert, AlertTitle, AlertDescription } from '../ui/Alert';
@@ -75,6 +75,33 @@ export function UserManagement() {
     }
   };
 
+  const handleToggleStatus = (user) => {
+    const toActive = user.status !== 'active';
+    if (window.confirm(t('admin.users.confirmToggleStatus', { username: user.username, to: toActive ? t('admin.users.statusActive') : t('admin.users.statusInactive') }))) {
+      updateUserMutation.mutate({ id: user.id, data: { status: toActive ? 'active' : 'inactive' } });
+    }
+  };
+
+  const handleAdjustPoints = (user) => {
+    const deltaStr = window.prompt(t('admin.users.promptAdjustPoints', { username: user.username }));
+    if (deltaStr === null) return;
+    const delta = Number(deltaStr);
+    if (!Number.isFinite(delta) || delta === 0) {
+      toast.error(t('admin.users.invalidDelta'));
+      return;
+    }
+    const reason = window.prompt(t('admin.users.promptAdjustReason')) || '';
+    adminAPI.adjustUserPoints(user.id, { delta, reason })
+      .then(() => {
+        queryClient.invalidateQueries('adminUsers');
+        toast.success(t('admin.users.adjustSuccess'));
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error(t('admin.users.adjustFailed'));
+      });
+  };
+
   // 后端返回结构：{ success, data: { users: [...], pagination: {...} } }
   const users = data?.data?.data?.users || [];
   const pagination = data?.data?.data?.pagination || {};
@@ -126,24 +153,34 @@ export function UserManagement() {
         </div>
       </div>
 
-      {isLoading || isFetching ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-green-500" />
-        </div>
-      ) : error ? (
-        <Alert variant="destructive">
-          <AlertTitle>{t('common.error')}</AlertTitle>
-          <AlertDescription>{t('errors.loadFailed')}</AlertDescription>
-        </Alert>
-      ) : users.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-lg shadow-sm border">
-          <h3 className="text-xl font-semibold">{t('admin.users.noUsersFound')}</h3>
-          <p className="text-muted-foreground mt-2">{t('admin.users.tryDifferentFilters')}</p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto bg-white rounded-lg shadow-sm border">
-            <table className="min-w-full divide-y divide-gray-200">
+      {(() => {
+        if (isLoading || isFetching) {
+          return (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-green-500" />
+            </div>
+          );
+        }
+        if (error) {
+          return (
+            <Alert variant="destructive">
+              <AlertTitle>{t('common.error')}</AlertTitle>
+              <AlertDescription>{t('errors.loadFailed')}</AlertDescription>
+            </Alert>
+          );
+        }
+        if (users.length === 0) {
+          return (
+            <div className="text-center py-16 bg-white rounded-lg shadow-sm border">
+              <h3 className="text-xl font-semibold">{t('admin.users.noUsersFound')}</h3>
+              <p className="text-muted-foreground mt-2">{t('admin.users.tryDifferentFilters')}</p>
+            </div>
+          );
+        }
+        return (
+          <>
+            <div className="overflow-x-auto bg-white rounded-lg shadow-sm border">
+              <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.users.table.username')}</th>
@@ -173,6 +210,12 @@ export function UserManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.points}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(user)} className="mr-2">
+                        {user.status === 'active' ? t('admin.users.disable') : t('admin.users.enable')}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleAdjustPoints(user)} className="mr-2" title={t('admin.users.promptAdjustPoints', { username: user.username })}>
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} className="mr-2">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -183,17 +226,18 @@ export function UserManagement() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-          <Pagination
-            currentPage={pagination.current_page}
-            totalPages={pagination.total_pages}
-            onPageChange={handlePageChange}
-            itemsPerPage={pagination.per_page}
-            totalItems={pagination.total_items}
-          />
-        </>
-      )}
+              </table>
+            </div>
+            <Pagination
+              currentPage={pagination.current_page}
+              totalPages={pagination.total_pages}
+              onPageChange={handlePageChange}
+              itemsPerPage={pagination.per_page}
+              totalItems={pagination.total_items}
+            />
+          </>
+        );
+      })()}
     </div>
   );
 }

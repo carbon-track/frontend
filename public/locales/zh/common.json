@@ -650,14 +650,59 @@
       "users": "用户管理",
       "activities": "活动管理",
       "products": "商品管理",
-      "exchanges": "兑换管理"
+      "exchanges": "兑换管理",
+      "broadcast": "广播中心"
+    },
+    "broadcast": {
+      "title": "广播中心",
+      "description": "向全体或指定用户发送系统消息",
+      "form": {
+        "title": "标题",
+        "content": "内容",
+        "priority": "优先级",
+        "scope": "发送范围",
+        "targetUsers": "目标用户ID（逗号分隔）",
+        "targetUsersPlaceholder": "例如：1,2,3"
+      },
+      "scope": {
+        "all": "全体用户",
+        "custom": "指定用户"
+      },
+      "preview": "预览",
+      "previewPanel": "发送预览",
+      "send": "发送",
+      "sendSuccess": "发送成功（{{count}} 条）",
+      "sendFailed": "发送失败",
+      "noticeTitle": "提示",
+      "noticeDesc": "广播消息将以系统消息形式发送到用户消息中心。"
     },
     "dashboard": {
       "title": "管理仪表盘",
-      "description": "查看平台关键指标与待处理事项",
+      "description": "平台关键指标概览与近期趋势",
       "totalUsers": "用户总数",
+      "activeUsers": "活跃用户",
+      "newUsers30d": "近30天新增用户",
       "pendingActivities": "待审核活动",
-      "pendingExchanges": "待处理兑换"
+      "pendingExchanges": "待处理兑换",
+      "totalTransactions": "活动总数",
+      "approvedTransactions": "已通过",
+      "rejectedTransactions": "已拒绝",
+      "totalPointsAwarded": "累计发放积分",
+      "totalCarbonSaved": "累计减排",
+      "totalExchanges": "兑换总数",
+      "completedExchanges": "已完成兑换",
+      "totalPointsSpent": "累计消耗积分",
+      "totalMessages": "消息总数",
+      "unreadMessages": "未读",
+      "totalActivities": "活动类型总数",
+      "activeActivities": "有效活动类型",
+      "trendsTitle": "趋势（近30天）",
+      "trendsSubtitle": "每日活动量与碳减排",
+      "trendsTransactions": "活动量",
+      "trendsCarbonSaved": "碳减排（kg）",
+      "autoRefresh": "自动刷新",
+      "refreshNow": "立即刷新",
+      "lastUpdated": "上次更新时间"
     },
     "users": {
       "confirmToggleAdmin": "是否将用户 {{username}} 设置为管理员？\n(点“确定”为管理员；“取消”为普通用户)",
@@ -684,10 +729,19 @@
         "status": "状态",
         "points": "积分",
         "actions": "操作"
-      }
+      },
+      "confirmToggleStatus": "确定将用户 {{username}} 状态切换为 {{to}} 吗？",
+      "disable": "禁用",
+      "enable": "启用",
+      "promptAdjustPoints": "为用户 {{username}} 调整积分（正数增加，负数扣减）：",
+      "promptAdjustReason": "请输入调整原因（可选）",
+      "invalidDelta": "请输入非零的有效数字",
+      "adjustSuccess": "积分已调整",
+      "adjustFailed": "积分调整失败"
     }
   },
   "common": {
+  "actions": "操作",
     "loading": "加载中...",
     "error": "错误",
     "success": "成功",
@@ -727,6 +781,7 @@
     "print": "打印",
     "export": "导出",
     "import": "导入",
+    "sending": "发送中...",
     "sort": {
       "sortBy": "排序方式",
       "newest": "最新优先",

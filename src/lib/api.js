@@ -325,6 +325,8 @@ export const adminAPI = {
   getUsers: (params = {}) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  // 调整用户积分
+  adjustUserPoints: (id, data) => api.post(`/admin/users/${id}/points/adjust`, data),
   
   // 获取待审核交易
   getPendingTransactions: (params = {}) => api.get('/admin/transactions/pending', { params }),
@@ -374,6 +376,9 @@ export const adminAPI = {
   // 审核兑换记录（管理员）
   reviewExchange: (id, data) => api.put(`/admin/exchanges/${id}`, data),
   updateExchangeStatus: (id, data) => api.put(`/admin/exchanges/${id}/status`, data),
+
+  // 广播系统消息（管理员）
+  broadcastMessage: (data) => api.post('/admin/messages/broadcast', data),
 };
 
 // 工具函数

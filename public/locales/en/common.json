@@ -537,14 +537,59 @@
       "users": "Users",
       "activities": "Activities",
       "products": "Products",
-      "exchanges": "Exchanges"
+      "exchanges": "Exchanges",
+      "broadcast": "Broadcast"
+    },
+    "broadcast": {
+      "title": "Broadcast Center",
+      "description": "Send system messages to all or selected users",
+      "form": {
+        "title": "Title",
+        "content": "Content",
+        "priority": "Priority",
+        "scope": "Scope",
+        "targetUsers": "Target User IDs (comma-separated)",
+        "targetUsersPlaceholder": "e.g., 1,2,3"
+      },
+      "scope": {
+        "all": "All Users",
+        "custom": "Selected Users"
+      },
+      "preview": "Preview",
+      "previewPanel": "Preview",
+      "send": "Send",
+      "sendSuccess": "Sent successfully ({{count}} messages)",
+      "sendFailed": "Failed to send",
+      "noticeTitle": "Notice",
+      "noticeDesc": "Broadcast messages will be delivered to users' message center as system notifications."
     },
     "dashboard": {
       "title": "Admin Dashboard",
-      "description": "View key metrics and pending items",
+      "description": "Overview of platform metrics and recent trends.",
       "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "newUsers30d": "New Users (30d)",
       "pendingActivities": "Pending Activities",
-      "pendingExchanges": "Pending Exchanges"
+      "pendingExchanges": "Pending Exchanges",
+      "totalTransactions": "Total Transactions",
+      "approvedTransactions": "Approved",
+      "rejectedTransactions": "Rejected",
+      "totalPointsAwarded": "Points Awarded",
+      "totalCarbonSaved": "Carbon Saved",
+      "totalExchanges": "Total Exchanges",
+      "completedExchanges": "Completed Exchanges",
+      "totalPointsSpent": "Points Spent",
+      "totalMessages": "Total Messages",
+      "unreadMessages": "Unread",
+      "totalActivities": "Total Activities",
+      "activeActivities": "Active Activities",
+      "trendsTitle": "Trends (Last 30 days)",
+      "trendsSubtitle": "Transactions vs. Carbon Saved",
+      "trendsTransactions": "Transactions",
+      "trendsCarbonSaved": "Carbon Saved (kg)",
+      "autoRefresh": "Auto refresh",
+      "refreshNow": "Refresh",
+      "lastUpdated": "Last updated"
     },
     "users": {
       "confirmToggleAdmin": "Set user {{username}} as admin?\n(OK = Admin; Cancel = Regular User)",
@@ -564,6 +609,14 @@
       "searchPlaceholder": "Search by username, email or name",
       "noUsersFound": "No users found",
       "tryDifferentFilters": "Try adjusting filters",
+      "confirmToggleStatus": "Are you sure to switch user {{username}} status to {{to}}?",
+      "disable": "Disable",
+      "enable": "Enable",
+      "promptAdjustPoints": "Adjust points for {{username}} (positive to add, negative to deduct):",
+      "promptAdjustReason": "Enter a reason (optional):",
+      "invalidDelta": "Please enter a non-zero valid number",
+      "adjustSuccess": "Points adjusted successfully",
+      "adjustFailed": "Failed to adjust points",
       "table": {
         "username": "Username",
         "email": "Email",
@@ -642,6 +695,7 @@
     "print": "Print",
     "export": "Export",
     "import": "Import",
+    "sending": "Sending...",
     "sort": {
       "sortBy": "Sort By",
       "newest": "Newest First",
