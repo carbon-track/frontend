@@ -30,6 +30,7 @@ const FileUpload = ({
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
+  const [mode, setMode] = useState('direct'); // direct | legacy
 
   // 处理文件选择
   const handleFileSelect = useCallback(async (selectedFiles) => {
@@ -92,23 +93,46 @@ const FileUpload = ({
     setError('');
 
     try {
-      const filesToUpload = files.map(f => f.file);
+  const filesToUpload = files.map(f => f.file);
       
       const uploadOptions = {
         directory,
         entityType,
         entityId,
+        mode,
         onProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(progress);
+          // direct 多文件时我们包装为 loaded: overall,total:100
+          if (progressEvent.total === 100) {
+            setUploadProgress(Math.round(progressEvent.loaded));
+          } else if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(progress);
+          }
         }
       };
 
       let result;
-      if (multiple && filesToUpload.length > 1) {
-        result = await fileUploader.uploadMultipleFiles(filesToUpload, uploadOptions);
-      } else {
-        result = await fileUploader.uploadFile(filesToUpload[0], uploadOptions);
+      try {
+        if (multiple && filesToUpload.length > 1) {
+          result = await fileUploader.uploadMultipleFiles(filesToUpload, uploadOptions);
+        } else {
+          result = await fileUploader.uploadFile(filesToUpload[0], uploadOptions);
+        }
+      } catch (e) {
+        if (mode === 'direct') {
+          console.warn('Direct upload failed, fallback to legacy mode', e);
+          setMode('legacy');
+          // 重置进度后回退
+          setUploadProgress(0);
+          const fallbackOptions = { ...uploadOptions, mode: 'legacy' };
+          if (multiple && filesToUpload.length > 1) {
+            result = await fileUploader.uploadMultipleFiles(filesToUpload, fallbackOptions);
+          } else {
+            result = await fileUploader.uploadFile(filesToUpload[0], fallbackOptions);
+          }
+        } else {
+          throw e;
+        }
       }
 
       // 更新文件状态
@@ -229,17 +253,27 @@ const FileUpload = ({
         />
         
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-lg font-medium text-gray-900 mb-2">
-          {dragActive 
-            ? t('upload.dropFiles') 
-            : t('upload.clickOrDrag')
-          }
+        <p className="text-lg font-medium text-gray-900 mb-2 flex items-center justify-center gap-2">
+          <span>
+            {dragActive 
+              ? t('upload.dropFiles') 
+              : t('upload.clickOrDrag')
+            }
+          </span>
+          <span
+            onClick={(e) => { e.stopPropagation(); setMode(m => m === 'direct' ? 'legacy' : 'direct'); }}
+            className={cn('text-xs px-2 py-0.5 rounded border cursor-pointer select-none',
+              mode === 'direct' ? 'bg-green-50 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-600')}
+            title={mode === 'direct' ? '当前：直传（点击切换为旧兼容模式）' : '当前：旧模式（点击切换为直传）'}
+          >{mode === 'direct' ? 'Direct' : 'Legacy'}</span>
         </p>
-        <p className="text-sm text-gray-500">
-          {multiple 
-            ? t('upload.supportMultiple', { max: maxFiles })
-            : t('upload.supportSingle')
-          }
+        <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+          <span>
+            {multiple 
+              ? t('upload.supportMultiple', { max: maxFiles })
+              : t('upload.supportSingle')
+            }
+          </span>
         </p>
         <p className="text-xs text-gray-400 mt-2">
           {t('upload.supportedFormats')}: {t('upload.supportedFormatsDetail')}

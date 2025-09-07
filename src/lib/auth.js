@@ -1,5 +1,4 @@
 import api from './api';
-import i18n from '@/lib/i18n';
 
 // Token管理
 export const tokenManager = {
@@ -53,20 +52,13 @@ export const userManager = {
 export const authAPI = {
   async login(credentials) {
     const response = await api.post('/auth/login', credentials);
-
-    // 后端实际返回：{ success, message, data: { token, user } }
-    if (response.data?.success && response.data?.data?.token) {
+    
+    if (response.data.success) {
       const { token, user } = response.data.data;
       tokenManager.setToken(token);
-      if (user) {
-        userManager.setUser(user);
-      } else {
-        // 兜底拉取用户信息
-        await this.getCurrentUser();
-      }
-      return { success: true, data: { token, user: userManager.getUser() } };
+      userManager.setUser(user);
     }
-
+    
     return response.data;
   },
 
@@ -76,23 +68,11 @@ export const authAPI = {
   },
 
   async logout() {
-    // 先立即清理本地状态，避免未等待网络返回导致 UI 仍显示已登录
     try {
-      tokenManager.removeToken();
-      userManager.removeUser();
-      // 清理刷新定时器（如已启动）
-      try { clearTokenRefreshTimer(); } catch (e) {
-        if (import.meta?.env?.DEV) {
-          // eslint-disable-next-line no-console
-          console.debug('clearTokenRefreshTimer failed during logout:', e);
-        }
-      }
-      // 尝试通知后端（无需阻塞或依赖其结果）
-      await api.post('/auth/logout').catch((error) => {
-        console.warn('Logout API call failed:', error);
-      });
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.warn('Logout API call failed:', error);
     } finally {
-      // 再次兜底清理
       tokenManager.removeToken();
       userManager.removeUser();
     }
@@ -102,9 +82,8 @@ export const authAPI = {
     try {
       const response = await api.get('/users/me');
       if (response.data.success) {
-        const user = response.data.data;
-        userManager.setUser(user);
-        return user;
+        userManager.setUser(response.data.data);
+        return response.data.data;
       }
     } catch (error) {
       console.error('Get current user failed:', error);
@@ -188,42 +167,44 @@ export const hasPermission = (permission) => {
 };
 
 // 表单验证规则
-// 生成基于当前语言的校验规则
-export const getValidationRules = () => {
-  const t = i18n.t.bind(i18n);
-  return {
-    usernameOrEmail: {
-      required: t('validation.required', { defaultValue: '此字段为必填项' })
-    },
-    username: {
-      required: t('validation.required'),
-      minLength: { value: 3, message: t('validation.minLength', { min: 3 }) },
-      maxLength: { value: 20, message: t('validation.maxLength', { max: 20 }) },
-      pattern: {
-        value: /^\w+$/,
-        message: t('auth.validation.usernamePattern', { defaultValue: '用户名只能包含字母、数字和下划线' })
-      }
-    },
-    email: {
-      required: t('validation.required'),
-      pattern: {
-        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        message: t('validation.email')
-      }
-    },
-    password: {
-      required: t('auth.passwordRequired', { defaultValue: t('validation.required') })
-    },
-    realName: {
-      required: t('validation.required'),
-      minLength: { value: 2, message: t('validation.minLength', { min: 2 }) },
-      maxLength: { value: 10, message: t('validation.maxLength', { max: 10 }) }
-    },
-    className: {
-      // 注册阶段不再强制必填
-      maxLength: { value: 20, message: t('validation.maxLength', { max: 20 }) }
+export const validationRules = {
+  username: {
+    required: '用户名不能为空',
+    minLength: { value: 3, message: '用户名至少3个字符' },
+    maxLength: { value: 20, message: '用户名最多20个字符' },
+    pattern: {
+      value: /^[a-zA-Z0-9_]+$/,
+      message: '用户名只能包含字母、数字和下划线'
     }
-  };
+  },
+  
+  email: {
+    required: '邮箱不能为空',
+    pattern: {
+      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: '请输入有效的邮箱地址'
+    }
+  },
+  
+  password: {
+    required: '密码不能为空',
+    minLength: { value: 8, message: '密码至少8个字符' },
+    pattern: {
+      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      message: '密码必须包含大小写字母和数字'
+    }
+  },
+  
+  realName: {
+    required: '真实姓名不能为空',
+    minLength: { value: 2, message: '姓名至少2个字符' },
+    maxLength: { value: 10, message: '姓名最多10个字符' }
+  },
+  
+  className: {
+    required: '班级不能为空',
+    maxLength: { value: 20, message: '班级名称最多20个字符' }
+  }
 };
 
 // 错误处理
@@ -242,18 +223,8 @@ export const handleAuthError = (error) => {
 // 自动刷新token
 export const setupTokenRefresh = () => {
   const refreshInterval = 30 * 60 * 1000; // 30分钟
-  // 若已有定时器，先清理，避免重复注册
-  if (typeof window !== 'undefined' && window.__auth_refresh_timer_id) {
-    try { clearInterval(window.__auth_refresh_timer_id); } catch (e) {
-      if (import.meta?.env?.DEV) {
-        // eslint-disable-next-line no-console
-        console.debug('clearInterval failed in setupTokenRefresh:', e);
-      }
-    }
-    window.__auth_refresh_timer_id = null;
-  }
-
-  const id = setInterval(async () => {
+  
+  setInterval(async () => {
     const token = tokenManager.getToken();
     if (!token || !tokenManager.isTokenValid()) {
       return;
@@ -275,22 +246,6 @@ export const setupTokenRefresh = () => {
       authAPI.logout();
     }
   }, refreshInterval);
-  if (typeof window !== 'undefined') {
-    window.__auth_refresh_timer_id = id;
-  }
-};
-
-// 供登出时清理刷新定时器使用
-export const clearTokenRefreshTimer = () => {
-  if (typeof window !== 'undefined' && window.__auth_refresh_timer_id) {
-    try { clearInterval(window.__auth_refresh_timer_id); } catch (e) {
-      if (import.meta?.env?.DEV) {
-        // eslint-disable-next-line no-console
-        console.debug('clearInterval failed in clearTokenRefreshTimer:', e);
-      }
-    }
-    window.__auth_refresh_timer_id = null;
-  }
 };
 
 // 初始化认证
@@ -311,7 +266,7 @@ export const initAuth = () => {
         authAPI.logout();
         redirectToLogin();
       }
-      return Promise.reject(error instanceof Error ? error : new Error(error?.message || 'API response error'));
+      return Promise.reject(error);
     }
   );
 
@@ -327,9 +282,8 @@ export default {
   redirectToLogin,
   getReturnUrl,
   hasPermission,
-  getValidationRules,
+  validationRules,
   handleAuthError,
-  initAuth,
-  clearTokenRefreshTimer
+  initAuth
 };
 

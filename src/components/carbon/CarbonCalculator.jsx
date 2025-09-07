@@ -41,7 +41,8 @@ export function CarbonCalculator() {
     setError('');
 
     try {
-      const response = await carbonAPI.calculate(selectedActivity.id || selectedActivity.uuid, data);
+  const activityId = selectedActivity.id || selectedActivity.uuid;
+  const response = await carbonAPI.calculate(activityId, data);
 
       if (response.data.success) {
         setCalculationResult(response.data.data);

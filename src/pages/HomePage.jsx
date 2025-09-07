@@ -220,19 +220,19 @@ export default function HomePage() {
             <div className="flex flex-col items-center">
               <Shield className="h-12 w-12 text-green-600 mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t('home.trust.secure')}</h3>
-              <p className="text-gray-600">数据安全，隐私保护</p>
+              <p className="text-gray-600">{t('home.trust.secureDescription')}</p>
             </div>
             
             <div className="flex flex-col items-center">
               <Award className="h-12 w-12 text-blue-600 mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t('home.trust.verified')}</h3>
-              <p className="text-gray-600">科学验证，权威认证</p>
+              <p className="text-gray-600">{t('home.trust.verifiedDescription')}</p>
             </div>
             
             <div className="flex flex-col items-center">
               <Users className="h-12 w-12 text-purple-600 mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t('home.trust.community')}</h3>
-              <p className="text-gray-600">活跃社区，共同成长</p>
+              <p className="text-gray-600">{t('home.trust.communityDescription')}</p>
             </div>
           </div>
         </div>
@@ -240,4 +240,3 @@ export default function HomePage() {
     </div>
   );
 }
-

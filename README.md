@@ -36,10 +36,10 @@ VITE_TURNSTILE_SITE_KEY=你的_site_key
 
 ## Onboarding（入门引导）行为说明
 
-- 当用户已登录但缺少 `school_id` 或 `class_name` 时，受保护路由将引导至 `/onboarding` 完善资料。
+- 当用户已登录但缺少 `school_id` 时，受保护路由将引导至 `/onboarding` 完善资料（`class_name` 字段已弃用）。
 - 用户可点击“暂时跳过”，本次会话内将设置 `sessionStorage.onboarding_skipped = '1'`，从而允许继续访问其它页面；成功保存资料后会清除此标记。
 - 登录与退出登录会清理该标记，避免在新会话延续跳过状态。
-- 学校创建与班级创建接口需要登录态（携带 `Authorization: Bearer <token>`），否则会返回 401；获取学校列表与班级列表为公开接口。
+- 学校创建接口需要登录态（携带 `Authorization: Bearer <token>`），否则会返回 401；获取学校列表为公开接口。
 
 ## Admin 区域（管理员后台）
 
@@ -64,7 +64,7 @@ VITE_TURNSTILE_SITE_KEY=你的_site_key
 
 - 鉴权说明：
 	- 由 `src/components/auth/ProtectedRoute.jsx` 提供的 `AdminRoute` 组件实现，仅 `is_admin` 用户可访问。
-	- 若用户资料缺少 `school_id`/`class_name`，受保护路由会先引导到 `/onboarding` 完善资料（支持本会话临时跳过）。
+	- 若用户资料缺少 `school_id`，受保护路由会先引导到 `/onboarding` 完善资料（支持本会话临时跳过）。
 
 - 后端接口：
 	- 统计数据：`GET /admin/stats`（已修复与数据库结构对齐，`total_carbon_saved` 来自 `carbon_records` 聚合）。

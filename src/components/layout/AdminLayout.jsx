@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from '../../hooks/useTranslation';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../../lib/react-query';
 
 export default function AdminLayout() {
   const { t } = useTranslation();
@@ -12,6 +14,7 @@ export default function AdminLayout() {
     { to: '/admin/products', label: t('admin.tabs.products') },
     { to: '/admin/exchanges', label: t('admin.tabs.exchanges') },
     { to: '/admin/broadcast', label: t('admin.tabs.broadcast') },
+    { to: '/admin/system-logs', label: t('admin.tabs.systemLogs') },
   ];
 
   return (
@@ -34,7 +37,9 @@ export default function AdminLayout() {
           ))}
         </nav>
       </div>
-      <Outlet />
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+      </QueryClientProvider>
     </div>
   );
 }

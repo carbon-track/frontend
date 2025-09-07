@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import { useTranslation } from '../hooks/useTranslation';
 import { ActivityFilters } from '../components/activities/ActivityFilters';
@@ -49,22 +49,7 @@ export default function ActivitiesPage() {
 
   const activities = data?.data?.data || [];
   const pagination = data?.data?.pagination || {};
-  // 统一后端不同分页字段命名，防止 undefined 造成 UI 占位符问题
-  const currentPage = pagination.page ?? pagination.current_page ?? filters.page ?? 1;
-  const totalPages = pagination.pages ?? pagination.total_pages ?? 1;
-  const itemsPerPage = pagination.limit ?? pagination.per_page ?? filters.limit ?? 10;
-  const totalItems = pagination.total ?? pagination.total_items ?? activities.length ?? 0;
-  // 将类别数据在页面层进行一次归一化，避免下游组件多处判空
-  const categoriesRaw = categoriesData?.data?.data;
-  const categories = React.useMemo(() => {
-    const source = categoriesRaw;
-    if (Array.isArray(source)) return source;
-    if (source && typeof source === 'object') {
-      return Object.keys(source).map((key) => ({ category: key }));
-    }
-    if (typeof source === 'string') return [{ category: source }];
-    return [];
-  }, [categoriesRaw]);
+  const categories = categoriesData?.data?.data || [];
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -99,11 +84,11 @@ export default function ActivitiesPage() {
         <>
           <ActivityTable activities={activities} onRowClick={handleRowClick} />
           <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
+            currentPage={pagination.current_page}
+            totalPages={pagination.total_pages}
             onPageChange={handlePageChange}
-            itemsPerPage={itemsPerPage}
-            totalItems={totalItems}
+            itemsPerPage={pagination.per_page}
+            totalItems={pagination.total_items}
           />
         </>
       )}

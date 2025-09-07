@@ -43,6 +43,20 @@ export default function AdminPage() {
     }
   );
 
+  // 加载审计日志
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditLimit] = useState(50);
+  const [auditFilters, setAuditFilters] = useState({});
+
+  const { data: auditData, isLoading: auditLoading, isError: auditError, refetch: refetchAudit } = useQuery(
+    ['adminLogs', auditPage, auditLimit, auditFilters],
+    () => adminAPI.getLogs({ page: auditPage, limit: auditLimit, ...auditFilters }).then(res => res.data),
+    {
+      staleTime: 5_000,
+      keepPreviousData: true,
+    }
+  );
+
   const number = useMemo(() => new Intl.NumberFormat(), []);
   const decimal = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
 
@@ -51,13 +65,14 @@ export default function AdminPage() {
       <h1 className="text-3xl font-bold tracking-tight mb-8">{t('admin.title')}</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="dashboard">{t('admin.tabs.dashboard')}</TabsTrigger>
           <TabsTrigger value="users">{t('admin.tabs.users')}</TabsTrigger>
           <TabsTrigger value="activities">{t('admin.tabs.activities')}</TabsTrigger>
           <TabsTrigger value="products">{t('admin.tabs.products')}</TabsTrigger>
           <TabsTrigger value="exchanges">{t('admin.tabs.exchanges')}</TabsTrigger>
           <TabsTrigger value="broadcast">{t('admin.tabs.broadcast')}</TabsTrigger>
+          <TabsTrigger value="audit">{t('admin.tabs.audit')}</TabsTrigger>
           {/* Add more admin tabs here */}
         </TabsList>
         <TabsContent value="dashboard" className="mt-6">
@@ -194,9 +209,313 @@ export default function AdminPage() {
         <TabsContent value="broadcast" className="mt-6">
           <BroadcastCenter />
         </TabsContent>
+        <TabsContent value="audit" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('admin.audit.title')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {auditLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                  <span>{t('common.loading')}</span>
+                </div>
+              )}
+              {auditError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>{t('common.error')}</AlertTitle>
+                  <AlertDescription>{auditError.message}</AlertDescription>
+                </Alert>
+              )}
+              {!auditLoading && !auditError && auditData && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-muted-foreground">
+                      {t('admin.audit.totalLogs')}: {auditData.pagination.total_items}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => refetchAudit()}>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {t('common.refresh')}
+                    </Button>
+                  </div>
+                  <div className="rounded-md border">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium text-sm">ID</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-sm">Actor</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-sm">Action</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-sm">Status</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-sm">Time</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-sm">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditData.logs.map((log) => (
+                          <tr key={log.id} className="border-b hover:bg-accent">
+                            <td className="p-4 font-mono text-sm">{log.id}</td>
+                            <td className="p-4">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                log.actor_type === 'admin' ? 'bg-red-100 text-red-800' :
+                                log.actor_type === 'user' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {log.actor_type}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm font-medium">{log.action}</span>
+                              {log.operation_category && (
+                                <span className="ml-2 px-2 py-1 rounded-full text-xs bg-secondary text-secondary-foreground">
+                                  {log.operation_category}
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                log.status === 'success' ? 'bg-green-100 text-green-800' :
+                                log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {log.status}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(log.created_at).toLocaleString()}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <div className="space-y-2">
+                                {log.data && (
+                                  <AuditJsonField json={log.data} title="Request Data" />
+                                )}
+                                {log.old_data && (
+                                  <AuditJsonField json={log.old_data} title="Old Data" />
+                                )}
+                                {log.new_data && (
+                                  <AuditJsonField json={log.new_data} title="New Data" />
+                                )}
+                                {log.affected_table && (
+                                  <div className="text-sm text-muted-foreground">
+                                    <span className="font-medium">Affected:</span> {log.affected_table}
+                                    {log.affected_id && ` #${log.affected_id}`}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {auditData.pagination.total_pages > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {((auditData.pagination.current_page - 1) * auditData.pagination.per_page) + 1}-
+                        {Math.min(auditData.pagination.current_page * auditData.pagination.per_page, auditData.pagination.total_items)} of {auditData.pagination.total_items}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAuditPage(Math.max(1, auditPage - 1))}
+                          disabled={auditPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <span className="text-sm">
+                          Page {auditPage} of {auditData.pagination.total_pages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAuditPage(Math.min(auditData.pagination.total_pages, auditPage + 1))}
+                          disabled={auditPage === auditData.pagination.total_pages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="audit" className="mt-6">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Audit Logs</h2>
+            </div>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                  <span>Loading audit logs...</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="audit" className="mt-6">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">{t('admin.tabs.audit')}</h2>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => auditQuery.refetch()}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  {t('common.refresh')}
+                </Button>
+              </div>
+            </div>
+
+            {auditLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                <span>{t('common.loading')}</span>
+              </div>
+            )}
+
+            {auditError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{t('common.error')}</AlertTitle>
+                <AlertDescription>{auditError.message}</AlertDescription>
+              </Alert>
+            )}
+
+            {!auditLoading && !auditError && auditData && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-sm text-muted-foreground">
+                    {t('admin.audit.totalLogs')}: {auditData.pagination.total_items} | 
+                    {t('admin.audit.page')}: {auditData.pagination.current_page} / {auditData.pagination.total_pages}
+                  </span>
+                </div>
+
+                <div className="rounded-md border overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm [&:has([role=checkbox])]:pr-0">
+                          ID
+                        </th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm">Actor</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm">Action</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm">Status</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm">IP</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm">Time</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-sm">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditData.logs.map((log) => (
+                        <tr key={log.id} className="border-b hover:bg-accent data-[state=selected]:bg-muted">
+                          <td className="p-4 font-medium">{log.id}</td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                log.actor_type === 'admin' ? 'bg-red-100 text-red-800' :
+                                log.actor_type === 'user' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {log.actor_type}
+                              </span>
+                              {log.user_id && (
+                                <span className="text-sm text-muted-foreground">{log.username || log.user_id}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{log.action}</span>
+                              {log.operation_category && (
+                                <span className="px-2 py-1 rounded-full text-xs bg-secondary text-secondary-foreground">
+                                  {log.operation_category}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              log.status === 'success' ? 'bg-green-100 text-green-800' :
+                              log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {log.status}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm font-mono">{log.ip_address || 'N/A'}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(log.created_at).toLocaleString()}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="space-y-2">
+                              {log.data && (
+                                <JsonDetails json={log.data} title={t('admin.audit.requestData')} />
+                              )}
+                              {log.old_data && (
+                                <JsonDetails json={log.old_data} title={t('admin.audit.oldData')} />
+                              )}
+                              {log.new_data && (
+                                <JsonDetails json={log.new_data} title={t('admin.audit.newData')} />
+                              )}
+                              {log.affected_table && (
+                                <div className="text-sm">
+                                  <span className="font-medium">{t('admin.audit.affected')}:</span> {log.affected_table}
+                                  {log.affected_id && ` #${log.affected_id}`}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {auditData.pagination.total_pages > 1 && (
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      {t('admin.audit.showing')} {((auditData.pagination.current_page - 1) * auditData.pagination.per_page) + 1}-
+                      {Math.min(auditData.pagination.current_page * auditData.pagination.per_page, auditData.pagination.total_items)} {t('admin.audit.of')} {auditData.pagination.total_items}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAuditPage(Math.max(1, auditPage - 1))}
+                        disabled={auditPage === 1}
+                      >
+                        {t('common.previous')}
+                      </Button>
+                      <span className="text-sm">
+                        {t('admin.audit.page')} {auditPage} {t('admin.audit.of')} {auditData.pagination.total_pages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAuditPage(Math.min(auditData.pagination.total_pages, auditPage + 1))}
+                        disabled={auditPage === auditData.pagination.total_pages}
+                      >
+                        {t('common.next')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        </TabsContent>
         {/* Add more admin tab contents here */}
       </Tabs>
     </div>
   );
 }
-

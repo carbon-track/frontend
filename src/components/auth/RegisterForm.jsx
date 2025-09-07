@@ -61,16 +61,14 @@ export function RegisterForm() {
         email: data.email,
         password: data.password,
         confirm_password: data.confirmPassword,
-        real_name: data.realName,
+  // real_name 已废弃，不再发送
         cf_turnstile_response: turnstileToken || undefined
       };
       if (data.schoolId) {
         const sid = parseInt(data.schoolId, 10);
         if (!Number.isNaN(sid)) payload.school_id = sid;
       }
-      if (data.className) {
-        payload.class_name = data.className;
-      }
+      // class_name 已废弃
 
       const result = await authAPI.register(payload);
 
@@ -178,27 +176,7 @@ export function RegisterForm() {
                   </div>
                 </div>
 
-                {/* 真实姓名 */}
-                <div>
-                  <label htmlFor="realName" className="block text-sm font-medium text-gray-700">
-                    {t('auth.realName')}
-                  </label>
-                  <div className="mt-1">
-                    <Input
-                      id="realName"
-                      type="text"
-                      autoComplete="name"
-                      placeholder={t('auth.realNamePlaceholder')}
-                      error={errors.realName}
-                      {...register('realName', validationRules.realName)}
-                    />
-                    {errors.realName && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.realName.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                {/* real_name 字段已移除 */}
 
                 {/* 学校（可选） */}
                 <div>
@@ -224,24 +202,7 @@ export function RegisterForm() {
                   </div>
                 </div>
 
-                {/* 班级（可选） */}
-                <div>
-                  <label htmlFor="className" className="block text-sm font-medium text-gray-700">
-                    {t('auth.className')}（{t('common.optional') || '可选'}）
-                  </label>
-                  <div className="mt-1">
-                    <Input
-                      id="className"
-                      type="text"
-                      placeholder={t('auth.classNamePlaceholder')}
-                      error={errors.className}
-                      {...register('className', validationRules.className)}
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      {t('auth.classOptionalHint')}
-                    </p>
-                  </div>
-                </div>
+                {/* class_name 字段已移除 */}
 
                 {/* 密码 */}
                 <div>

@@ -101,7 +101,7 @@ export function Dashboard() {
         
         <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
           <span>{t('dashboard.lastLogin')}:</span>
-          <span>{user?.last_login ? new Date(user.last_login).toLocaleString('zh-CN') : t('dashboard.firstTime')}</span>
+          <span>{user?.last_login_at ? new Date(user.last_login_at).toLocaleString('zh-CN') : t('dashboard.firstTime')}</span>
         </div>
       </div>
 
@@ -243,4 +243,3 @@ export function Dashboard() {
     </div>
   );
 }
-

@@ -21,9 +21,9 @@ export default function OnboardingPage() {
   const { t } = useTranslation();
   const user = userManager.getUser();
   const [schools, setSchools] = useState([]);
-  const [classes, setClasses] = useState([]);
+  const [classes, setClasses] = useState([]); // 保留变量但不再展示班级 UI
   const [schoolQuery, setSchoolQuery] = useState('');
-  const [classQuery, setClassQuery] = useState('');
+  const [classQuery, setClassQuery] = useState(''); // class 相关已废弃
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +31,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     // 如果用户已完善信息，直接跳走
-    if (user?.school_id && user?.class_name) {
+    if (user?.school_id) {
       navigate('/dashboard', { replace: true });
       return;
     }
@@ -114,15 +114,12 @@ export default function OnboardingPage() {
       }
 
       // 2) 班级：如果有输入，创建或获取
-      let className = classQuery?.trim() || '';
-      if (schoolId && className) {
-        await ensureClass(schoolId, className);
-      }
+      // class_name 已废弃，不再处理
 
       // 3) 更新用户资料
       const payload = {};
       if (schoolId) payload.school_id = parseInt(schoolId, 10);
-      if (className) payload.class_name = className;
+  // 不再发送 class_name
 
       if (Object.keys(payload).length === 0) {
         setError(t('onboarding.leastOneField'));
@@ -195,31 +192,7 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label htmlFor="classSearch" className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.classLabel')}</label>
-                <Input
-                  id="classSearch"
-                  placeholder={t('onboarding.classPlaceholder')}
-                  value={classQuery}
-                  onChange={(e) => setClassQuery(e.target.value)}
-                  disabled={!selectedSchoolId && !schoolQuery}
-                />
-                {selectedSchoolId && (
-                  <div className="mt-2 max-h-40 overflow-auto border rounded">
-                    {classes.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-gray-50"
-                        onClick={() => setClassQuery(c.name)}
-                      >
-                        {c.name}
-                      </button>
-                    ))}
-                    {classes.length === 0 && (
-                      <div className="px-3 py-2 text-gray-500">{t('onboarding.noClassMatches')}</div>
-                    )}
-                  </div>
-                )}
+                {/* class_name UI 已移除 */}
               </div>
 
               <div className="flex gap-3">

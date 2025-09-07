@@ -1,4 +1,5 @@
 import api from './api';
+import axios from 'axios';
 
 /**
  * 文件上传工具类
@@ -16,6 +17,154 @@ export class FileUploader {
     this.allowedExtensions = options.allowedExtensions || [
       'jpg', 'jpeg', 'png', 'gif', 'webp'
     ];
+  }
+
+  /**
+   * 计算文件 SHA256 (hex)
+   */
+  async computeSHA256(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * 申请预签名（含去重）
+   */
+  async presignDirectUpload({ originalName, mimeType, directory='uploads', fileSize, sha256, entityType, entityId, expiresIn=600 }) {
+    const payload = {
+      original_name: originalName,
+      mime_type: mimeType,
+      directory,
+      file_size: fileSize,
+      sha256,
+      entity_type: entityType,
+      entity_id: entityId,
+      expires_in: expiresIn
+    };
+    const { data } = await api.post('/files/presign', payload);
+    if (!data.success) throw new Error(data.message || '获取预签名失败');
+    return data.data; // 返回 data 内部结构
+  }
+
+  /**
+   * 调用确认接口（包含引用计数递增）
+   */
+  async confirmDirectUpload({ filePath, originalName, sha256, entityType, entityId }) {
+    const { data } = await api.post('/files/confirm', {
+      file_path: filePath,
+      original_name: originalName,
+      sha256,
+      entity_type: entityType,
+      entity_id: entityId
+    });
+    if (!data.success) throw new Error(data.message || '上传确认失败');
+    return data.data;
+  }
+
+  /**
+   * 使用预签名 URL 直传单个文件（包含去重 + 确认）
+   * 返回统一结构：{ success, data: { file_path, public_url, sha256, duplicate, ... } }
+   */
+  async directUploadSingle(file, options = {}) {
+    // 1. 验证
+    const validation = this.validateFile(file);
+    if (!validation.isValid) {
+      throw new Error(validation.errors.join('; '));
+    }
+
+    const sha256 = await this.computeSHA256(file);
+    const presign = await this.presignDirectUpload({
+      originalName: file.name,
+      mimeType: file.type,
+      directory: options.directory,
+      fileSize: file.size,
+      sha256,
+      entityType: options.entityType,
+      entityId: options.entityId
+    });
+
+    // 2. 若 duplicate 则直接 confirm (以递增引用) 并返回
+    if (presign.duplicate) {
+      const confirmed = await this.confirmDirectUpload({
+        filePath: presign.file_path,
+        originalName: file.name,
+        sha256,
+        entityType: options.entityType,
+        entityId: options.entityId
+      });
+      return {
+        success: true,
+        data: {
+          ...confirmed,
+          file_path: presign.file_path,
+          public_url: presign.public_url,
+          duplicate: true,
+          sha256
+        }
+      };
+    }
+
+    // 3. PUT 直传
+    await axios.request({
+      url: presign.url,
+      method: presign.method || 'PUT',
+      headers: presign.headers || { 'Content-Type': file.type },
+      data: file,
+      onUploadProgress: options.onProgress
+    });
+
+    // 4. 确认
+    const confirmed = await this.confirmDirectUpload({
+      filePath: presign.file_path,
+      originalName: file.name,
+      sha256,
+      entityType: options.entityType,
+      entityId: options.entityId
+    });
+
+    return {
+      success: true,
+      data: {
+        ...confirmed,
+        file_path: presign.file_path,
+        public_url: presign.public_url,
+        duplicate: false,
+        sha256
+      }
+    };
+  }
+
+  /**
+   * 多文件直传（串行，避免同时多大文件发压；可改并发）
+   * 返回: { success, data: { results: [...], uploaded_count, duplicate_count } }
+   */
+  async directUploadMultiple(files, options = {}) {
+    const results = [];
+    let duplicateCount = 0;
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const perFileProgressWrapper = (evt) => {
+        // 计算总体进度：已完成 + 当前文件进度
+        if (options.onProgress && evt.total) {
+          const singleRatio = evt.loaded / evt.total;
+            const overall = ((i + singleRatio) / files.length) * 100;
+            options.onProgress({ ...evt, loaded: overall, total: 100 });
+        }
+      };
+      const res = await this.directUploadSingle(f, { ...options, onProgress: perFileProgressWrapper });
+      if (res.data.duplicate) duplicateCount += 1;
+      results.push(res.data);
+    }
+    return {
+      success: true,
+      data: {
+        results,
+        uploaded_count: results.length,
+        duplicate_count: duplicateCount
+      }
+    };
   }
 
   /**
@@ -50,6 +199,10 @@ export class FileUploader {
    * 上传单个文件
    */
   async uploadFile(file, options = {}) {
+    // 若显式要求 direct 模式
+    if (options.mode === 'direct') {
+      return this.directUploadSingle(file, options);
+    }
     const validation = this.validateFile(file);
     if (!validation.isValid) {
       throw new Error(validation.errors.join('; '));
@@ -88,6 +241,9 @@ export class FileUploader {
    * 上传多个文件
    */
   async uploadMultipleFiles(files, options = {}) {
+    if (options.mode === 'direct') {
+      return this.directUploadMultiple(files, options);
+    }
     // 验证所有文件
     const validationResults = files.map(file => ({
       file,

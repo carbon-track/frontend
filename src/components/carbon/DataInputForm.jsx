@@ -136,8 +136,39 @@ export function DataInputForm({
     return activity.description_zh || activity.description_en || activity.description;
   };
 
+  const calculationCard = (showCalculation && calculationResult) ? (
+    <Card className="bg-green-50 border-green-200 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium text-green-800">
+          {t('activities.form.calculationResult')}
+        </CardTitle>
+        <CardDescription className="text-xs">
+          {t('activities.form.previewAutoUpdate') || '实时预览'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          <div className="bg-white rounded-lg p-3 border">
+            <div className="text-xs text-gray-500 mb-1">{t('activities.carbonSaved')} (kg CO₂)</div>
+            <div className="text-2xl font-bold text-green-600 leading-none">
+              {(() => { const v = calculationResult.carbon_saved; const num = typeof v === 'number' ? v : Number(v); return Number.isFinite(num) ? num.toFixed(2) : '0.00'; })()}
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-3 border">
+            <div className="text-xs text-gray-500 mb-1">{t('activities.form.expectedPoints')}</div>
+            <div className="text-2xl font-bold text-blue-600 leading-none">
+              {calculationResult.points_earned ?? 0}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  ) : null;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-0 md:grid md:grid-cols-12 md:gap-6">
+      {/* 主列 */}
+      <div className="md:col-span-8 space-y-6">
       {/* 选中的活动信息 */}
       <Card>
         <CardHeader>
@@ -179,8 +210,13 @@ export function DataInputForm({
         </CardContent>
       </Card>
 
-      {/* 数据输入表单 */}
-      <Card>
+        {/* 移动端显示预览（在表单上方） */}
+        <div className="md:hidden">
+          {calculationCard}
+        </div>
+
+        {/* 数据输入表单 */}
+        <Card>
         <CardHeader>
           <CardTitle>{t('activities.form.dataInput')}</CardTitle>
           <CardDescription>
@@ -190,27 +226,27 @@ export function DataInputForm({
         <CardContent>
           <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
             {/* 数据输入 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('activities.form.dataValue')} ({t(`units.${activity.unit}`, activity.unit)})
-              </label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder={t('activities.form.dataPlaceholder')}
-                error={errors.data}
-                {...register('data', {
-                  required: t('activities.form.dataRequired'),
-                  min: { value: 0.01, message: t('activities.form.dataMinimum') }
-                })}
-              />
-              {errors.data && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.data.message}
-                </p>
-              )}
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('activities.form.dataValue')} ({t(`units.${activity.unit}`, activity.unit)})
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder={t('activities.form.dataPlaceholder')}
+                  error={errors.data}
+                  {...register('data', {
+                    required: t('activities.form.dataRequired'),
+                    min: { value: 0.01, message: t('activities.form.dataMinimum') }
+                  })}
+                />
+                {errors.data && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.data.message}
+                  </p>
+                )}
+              </div>
 
             {/* 活动日期 */}
             <div>
@@ -232,21 +268,6 @@ export function DataInputForm({
                 </p>
               )}
             </div>
-
-            {/* 备注 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FileText className="inline h-4 w-4 mr-1" />
-                {t('activities.form.notes')}
-              </label>
-              <textarea
-                rows={3}
-                placeholder={t('activities.form.notesPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                {...register('notes')}
-              />
-            </div>
-
             {/* 文件上传 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -268,44 +289,6 @@ export function DataInputForm({
               </p>
             </div>
 
-            {/* 计算结果 */}
-            {showCalculation && calculationResult && (
-              <Card className="bg-green-50 border-green-200">
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-green-800 mb-4">
-                      {t('activities.form.calculationResult')}
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4">
-                        <div className="text-2xl font-bold text-green-600">
-                          {(() => {
-                            const v = calculationResult.carbon_saved;
-                            const num = typeof v === 'number' ? v : Number(v);
-                            return Number.isFinite(num) ? num.toFixed(2) : '0.00';
-                          })()}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {t('activities.carbonSaved')} (kg CO₂)
-                        </div>
-                      </div>
-                      
-                      {calculationResult.points_earned && (
-                        <div className="bg-white rounded-lg p-4">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {calculationResult.points_earned}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {t('activities.form.expectedPoints')}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* 提交按钮 */}
             <div className="flex gap-4">
@@ -337,7 +320,29 @@ export function DataInputForm({
           </form>
         </CardContent>
       </Card>
+    </div>{/* END 主列 */}
+
+    {/* 侧栏：桌面端悬浮计算结果 */}
+    <div className="hidden md:block md:col-span-4">
+      <div className="sticky top-20 space-y-4">
+        {calculationCard || (
+          <Card className="border-dashed">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm text-gray-600">
+                {t('activities.form.calculationResult')}
+              </CardTitle>
+              <CardDescription className="text-xs">
+                {t('activities.form.enterDataToPreview') || '输入数值后出现'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-xs text-gray-400">
+              {t('activities.form.previewPlaceholder') || '填写数据以查看实时计算'}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
+  </div>  /* END grid container */
   );
 }
 
