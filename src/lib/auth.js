@@ -207,6 +207,24 @@ export const validationRules = {
   }
 };
 
+// 动态获取验证规则（向后兼容旧调用）
+export const getValidationRules = () => {
+  return {
+    ...validationRules,
+    // 登录时用户名或邮箱字段
+    usernameOrEmail: {
+      required: '用户名或邮箱不能为空',
+      validate: (value) => {
+        if (!value) return '用户名或邮箱不能为空';
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        const isUsername = /^[a-zA-Z0-9_]{3,20}$/.test(value);
+        if (!isEmail && !isUsername) return '请输入有效的用户名或邮箱';
+        return true;
+      }
+    }
+  };
+};
+
 // 错误处理
 export const handleAuthError = (error) => {
   if (error.response?.status === 401) {
@@ -283,6 +301,7 @@ export default {
   getReturnUrl,
   hasPermission,
   validationRules,
+  getValidationRules,
   handleAuthError,
   initAuth
 };
