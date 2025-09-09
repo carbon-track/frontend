@@ -4,6 +4,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { formatNumber } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
+import R2Image from '../common/R2Image';
 
 export function ProductCard({ product, onExchange, userPoints = 0 }) {
   const { t } = useTranslation();
@@ -68,22 +69,15 @@ export function ProductCard({ product, onExchange, userPoints = 0 }) {
         {/* 商品图片 */}
         {product.images && product.images.length > 0 && (
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-            <img
-              src={product.images[0]}
+            <R2Image
+              src={/^https?:\/\//.test(product.images[0]) ? product.images[0] : undefined}
+              filePath={!/^https?:\/\//.test(product.images[0]) ? product.images[0] : undefined}
               alt={product.name}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = '/placeholder-product.png';
-              }}
             />
           </div>
         )}
-
-        {/* 商品描述 */}
-        <p className="text-sm text-gray-600 line-clamp-3">
-          {product.description}
-        </p>
-
+        <p className="text-sm text-gray-600 line-clamp-3">{product.description}</p>
         {/* 积分和库存信息 */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

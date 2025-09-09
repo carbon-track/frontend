@@ -5,6 +5,7 @@ import { formatNumber } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
+import R2Image from '../common/R2Image';
 
 export function ExchangeModal({ product, userPoints, isOpen, onClose, onConfirm, isLoading }) {
   const { t } = useTranslation();
@@ -43,11 +44,7 @@ export function ExchangeModal({ product, userPoints, isOpen, onClose, onConfirm,
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     onConfirm({
       product_id: product.id,
       quantity,
@@ -89,13 +86,11 @@ export function ExchangeModal({ product, userPoints, isOpen, onClose, onConfirm,
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-start space-x-4">
                 {product.images && product.images.length > 0 && (
-                  <img
-                    src={product.images[0]}
+                  <R2Image
+                    src={/^https?:\/\//.test(product.images[0]) ? product.images[0] : undefined}
+                    filePath={!/^https?:\/\//.test(product.images[0]) ? product.images[0] : undefined}
                     alt={product.name}
                     className="w-20 h-20 object-cover rounded-lg"
-                    onError={(e) => {
-                      e.target.src = '/placeholder-product.png';
-                    }}
                   />
                 )}
                 <div className="flex-1">

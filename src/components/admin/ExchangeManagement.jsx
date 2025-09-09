@@ -8,6 +8,8 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Alert, AlertTitle, AlertDescription } from '../ui/Alert';
 import { Pagination } from '../ui/Pagination';
+import { prefetchPresignedUrls } from '../../lib/fileAccess';
+import R2Image from '../common/R2Image';
 import { toast } from 'react-hot-toast';
 // merged into utils import above
 
@@ -69,6 +71,16 @@ export function ExchangeManagement() {
 
   const exchanges = data?.data?.data || [];
   const pagination = data?.data?.pagination || {};
+
+  React.useEffect(() => {
+    const paths = exchanges
+      .map(e => e.product_image_url)
+      .filter(Boolean)
+      .filter(u => !u.startsWith('http'));
+    if (paths.length) {
+      prefetchPresignedUrls(paths).catch(() => {});
+    }
+  }, [exchanges]);
 
   return (
     <div className="space-y-6">
@@ -282,7 +294,13 @@ function ExchangeDetailModal({ isOpen, onClose, exchange }) {
               <p className="text-sm font-medium text-gray-500">{t('admin.exchanges.detail.product')}</p>
               <div className="flex items-center mt-1">
                 {exchange.product_image_url && (
-                  <img src={exchange.product_image_url} alt={exchange.product_name} className="h-10 w-10 rounded-full object-cover mr-2" />
+                  <R2Image
+                    src={exchange.product_image_url.startsWith('http') ? exchange.product_image_url : undefined}
+                    filePath={exchange.product_image_url.startsWith('http') ? undefined : exchange.product_image_url}
+                    alt={exchange.product_name}
+                    className="h-10 w-10 rounded-full object-cover mr-2"
+                    fallback={<div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 mr-2">IMG</div>}
+                  />
                 )}
                 <p className="text-gray-900">{exchange.product_name} x {formatNumber(exchange.quantity)}</p>
               </div>

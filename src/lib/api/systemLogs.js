@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from '../api';
 
 // 基础列表查询
 export async function fetchSystemLogs(params = {}) {
@@ -13,12 +13,13 @@ export async function fetchSystemLogs(params = {}) {
   if (request_id) query.append('request_id', request_id);
   if (date_from) query.append('date_from', date_from);
   if (date_to) query.append('date_to', date_to);
-  const res = await axios.get(`/api/v1/admin/system-logs?${query.toString()}`);
+  // 使用统一 api 实例；路径不再硬编码协议主机，保持与 baseURL 拼接
+  const res = await api.get(`/admin/system-logs?${query.toString()}`);
   return res.data;
 }
 
 // 详情
 export async function fetchSystemLogDetail(id) {
-  const res = await axios.get(`/api/v1/admin/system-logs/${id}`);
+  const res = await api.get(`/admin/system-logs/${id}`);
   return res.data;
 }

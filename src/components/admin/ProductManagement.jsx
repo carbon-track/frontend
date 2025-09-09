@@ -8,6 +8,9 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Alert, AlertTitle, AlertDescription } from '../ui/Alert';
 import { Pagination } from '../ui/Pagination';
+// 预取私有图片（可选性能优化）
+import { prefetchPresignedUrls } from '../../lib/fileAccess';
+import R2Image from '../common/R2Image';
 import { toast } from 'react-hot-toast';
 // date-fns format not used here
 
@@ -107,6 +110,17 @@ export function ProductManagement() {
   // 后端返回 [{ category, product_count }]
   const categories = (categoriesData?.data?.data || []).map(c => ({ id: c.category, name: c.category }));
 
+  // 可选：预取当前页产品图片的签名URL，减少首次渲染闪烁
+  useEffect(() => {
+    const paths = products
+      .map(p => p.image_url)
+      .filter(Boolean)
+      .filter(u => !u.startsWith('http')); // 仅 file_path
+    if (paths.length) {
+      prefetchPresignedUrls(paths).catch(() => {});
+    }
+  }, [products]);
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold tracking-tight">{t('admin.products.title')}</h2>
@@ -195,7 +209,13 @@ export function ProductManagement() {
                   <tr key={product.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="h-10 w-10 rounded-full object-cover" />
+                        <R2Image
+                          src={product.image_url.startsWith('http') ? product.image_url : undefined}
+                          filePath={product.image_url.startsWith('http') ? undefined : product.image_url}
+                          alt={product.name}
+                          className="h-10 w-10 rounded-full object-cover"
+                          fallback={<div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">IMG</div>}
+                        />
                       ) : (
                         <ImageIcon className="h-10 w-10 text-gray-300" />
                       )}

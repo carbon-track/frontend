@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getPresignedReadUrl } from '../../lib/fileAccess';
 
 /**
  * 通用图片预览组件
@@ -12,20 +13,54 @@ import { useTranslation } from '../../hooks/useTranslation';
 export function ImagePreviewGallery({ images, maxThumbnails = 3, size = 'sm', className = '' }) {
   const { t } = useTranslation();
   const [lightboxIndex, setLightboxIndex] = useState(-1);
-  if (!Array.isArray(images) || images.length === 0) {
+  const isEmpty = !Array.isArray(images) || images.length === 0;
+  const [resolved, setResolved] = useState([]);
+  const [loadingMap, setLoadingMap] = useState({});
+  const [errorMap, setErrorMap] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+    async function resolveAll() {
+      const tasks = (images || []).map(async (raw) => {
+        if (typeof raw === 'string') {
+          return { url: raw };
+        }
+        const base = raw || {};
+        // 若已有明确的url(可能是公开)直接使用
+        if (base.url || base.public_url) {
+          return { url: base.url || base.public_url, original_name: base.original_name };
+        }
+        if (base.file_path) {
+          try {
+            setLoadingMap(m => ({ ...m, [base.file_path]: true }));
+            const signed = await getPresignedReadUrl(base.file_path, 600);
+            if (cancelled) return null;
+            return { url: signed, original_name: base.original_name, file_path: base.file_path };
+          } catch (e) {
+            if (!cancelled) setErrorMap(err => ({ ...err, [base.file_path]: e.message || '加载失败' }));
+            return null;
+          } finally {
+            if (!cancelled) setLoadingMap(m => ({ ...m, [base.file_path]: false }));
+          }
+        }
+        return null;
+      });
+      const res = (await Promise.all(tasks)).filter(Boolean).filter(i => i.url);
+      if (!cancelled) setResolved(res);
+    }
+    resolveAll();
+    return () => { cancelled = true; };
+  }, [JSON.stringify(images)]);
+
+  const norm = resolved;
+
+  if (isEmpty || norm.length === 0) {
     return (
       <div className={`text-xs text-gray-400 italic flex items-center gap-1 ${className}`}>
         <ImageIcon className="h-3 w-3" /> {t('images.none', 'No images')}
       </div>
     );
   }
-
-  const norm = images
-    .map(img => {
-      if (typeof img === 'string') return { url: img };
-      return { url: img.url || img.public_url || img.file_path || '', original_name: img.original_name };
-    })
-    .filter(i => i.url);
 
   if (norm.length === 0) {
     return null;
@@ -45,6 +80,12 @@ export function ImagePreviewGallery({ images, maxThumbnails = 3, size = 'sm', cl
           onClick={() => setLightboxIndex(idx)}
           title={img.original_name || t('images.clickToPreview', 'Click to preview')}
         >
+          {loadingMap[img.file_path] && (
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500 bg-gray-100">...</div>
+          )}
+          {errorMap[img.file_path] && (
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] text-red-500 bg-gray-50 text-center px-1">ERR</div>
+          )}
           <img
             src={img.url}
             alt={img.original_name || `image-${idx}`}

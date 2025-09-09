@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { Calculator, Calendar, FileText, Upload, AlertCircle } from 'lucide-react';
+import { Calculator, Calendar, FileText, Upload, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
+import { batchUpload } from '../../lib/r2Upload';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
-import FileUpload from '../FileUpload';
+// 移除即时上传组件，改为提交时统一上传
 
 export function DataInputForm({ 
   activity, 
@@ -16,7 +17,13 @@ export function DataInputForm({
   isSubmitting 
 }) {
   const { t } = useTranslation();
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  // 选中的本地文件（未立即上传）
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploadError, setUploadError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadedMeta, setUploadedMeta] = useState([]); // 成功上传后的元数据
+  const [previewUrls, setPreviewUrls] = useState([]);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [showCalculation, setShowCalculation] = useState(false);
 
   const {
@@ -77,44 +84,73 @@ export function DataInputForm({
     };
   }, [activity, watchedData, onCalculate]);
 
-  const onFormSubmit = (data) => {
-    const formData = {
+  const onFormSubmit = async (data) => {
+    setUploadError('');
+    // 校验至少一张图片
+    if (!selectedFiles.length && !uploadedMeta.length) {
+      setUploadError(t('activities.form.imageRequired') || '请至少选择一张图片');
+      return;
+    }
+    // 若还未上传（正常情况）则先上传
+    let finalImages = uploadedMeta;
+    if (!uploadedMeta.length && selectedFiles.length) {
+      try {
+        setUploading(true);
+        const total = selectedFiles.length;
+        setProgress({ done: 0, total });
+  const results = await batchUpload(selectedFiles, { directory: 'activities', entityType: 'carbon_record' }, (idx, len) => {
+          setProgress({ done: idx, total: len });
+        });
+        finalImages = results.map(r => ({
+          url: r.url,
+          file_path: r.file_path,
+          original_name: r.original_name,
+          mime_type: r.mime_type,
+          size: r.size
+        }));
+        setUploadedMeta(finalImages);
+      } catch (e) {
+        setUploadError(e.message || '上传失败');
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    const payload = {
       activity_id: activity.id || activity.uuid,
-      data: parseFloat(data.data),
-      activity_date: data.activity_date,
-      notes: data.notes,
-      uploaded_files: uploadedFiles
+      amount: parseFloat(data.data),
+      date: data.activity_date,
+      description: data.notes,
+      images: (finalImages || []).map(i => ({ url: i.url, file_path: i.file_path, original_name: i.original_name, mime_type: i.mime_type, size: i.size }))
     };
-    
-    onSubmit(formData);
+    onSubmit(payload);
   };
 
-  // 处理文件组件上传成功后的回调（方案B：预上传，拿URL再提交）
-  const handleUploadSuccess = (result) => {
-    try {
-      // 兼容多文件与单文件两种返回结构
-      // 多文件：{ success, message, data: { results: [{ public_url, file_path, ... }], ... } }
-      // 单文件：{ success, message, data: { public_url, file_path, ... } }
-      // 也兼容直接返回 data 层被透传的情况
-      let urls = [];
-
-      if (result?.data?.results && Array.isArray(result.data.results)) {
-        urls = result.data.results
-          .map(r => r.public_url || (r.file_path ? `/${r.file_path}` : null))
-          .filter(Boolean);
-      } else if (result?.data?.public_url) {
-        urls = [result.data.public_url];
-      } else if (result?.public_url) {
-        urls = [result.public_url];
-      } else if (result?.data?.file_path) {
-        urls = [`/${result.data.file_path}`];
+  const handleFileSelect = (e) => {
+    setUploadError('');
+    const files = Array.from(e.target.files || []);
+    // 限制 5 张，单个 5MB
+    const MAX = 5;
+    const MAX_SIZE = 5 * 1024 * 1024;
+    const filtered = [];
+    const previews = [];
+    for (const f of files) {
+      if (f.size > MAX_SIZE) {
+        setUploadError(t('activities.form.fileTooLarge') || '文件过大');
+        continue;
       }
-
-      setUploadedFiles(urls);
-    } catch (e) {
-      // 静默回退，不影响主流程
-      console.warn('Handle upload success parse failed:', e);
+      filtered.push(f);
+      previews.push(URL.createObjectURL(f));
+      if (filtered.length >= MAX) break;
     }
+    setSelectedFiles(filtered);
+    setPreviewUrls(previews);
+  };
+
+  const removeFile = (idx) => {
+    setSelectedFiles(prev => prev.filter((_,i)=>i!==idx));
+    setPreviewUrls(prev => prev.filter((_,i)=>i!==idx));
   };
 
   if (!activity) {
@@ -268,25 +304,44 @@ export function DataInputForm({
                 </p>
               )}
             </div>
-            {/* 文件上传 */}
+            {/* 延迟上传：选择文件 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Upload className="inline h-4 w-4 mr-1" />
-                {t('activities.form.uploadImage')}
+                {t('activities.form.uploadImage')} (提交时上传)
               </label>
-              <FileUpload
-                multiple
-                directory="activities"
-                entityType="carbon_record"
-                accept="image/*"
-                maxFiles={3}
-                maxSize={5 * 1024 * 1024}
-                onUploadSuccess={handleUploadSuccess}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {t('activities.form.uploadHint')}
-              </p>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col gap-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="text-sm"
+                />
+                {selectedFiles.length > 0 && (
+                  <ul className="space-y-2 text-sm">
+                    {selectedFiles.map((f,i)=>(
+                      <li key={i} className="flex items-center justify-between bg-gray-50 px-2 py-1 rounded border">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {previewUrls[i] && <img src={previewUrls[i]} alt={f.name} className="h-10 w-10 object-cover rounded border" />}
+                          <span className="truncate flex items-center gap-2"><ImageIcon className="h-4 w-4 text-gray-500" />{f.name}</span>
+                        </div>
+                        <button type="button" onClick={()=>removeFile(i)} className="text-gray-400 hover:text-red-500">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {uploading && progress.total > 0 && (
+                  <p className="text-xs text-blue-600">{t('common.uploading') || '正在上传...'} {progress.done}/{progress.total}</p>
+                )}
+                {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+                {uploading && <p className="text-xs text-blue-600">{t('common.uploading') || '正在上传...'}</p>}
+                {!selectedFiles.length && !uploadError && (
+                  <p className="text-xs text-gray-500">{t('activities.form.uploadHint')}</p>
+                )}
+              </div>
             </div>
 
 
@@ -295,10 +350,10 @@ export function DataInputForm({
               <Button
                 type="submit"
                 className="flex-1"
-                loading={isSubmitting}
-                disabled={isSubmitting || !showCalculation}
+                loading={isSubmitting || uploading}
+                disabled={isSubmitting || uploading || !showCalculation}
               >
-                {isSubmitting ? t('activities.form.submitting') : t('activities.form.submit')}
+                {(isSubmitting || uploading) ? (t('activities.form.submitting') || '提交中...') : t('activities.form.submit')}
               </Button>
               
               <Button
