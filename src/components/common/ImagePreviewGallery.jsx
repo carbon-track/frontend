@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getPresignedReadUrl } from '../../lib/fileAccess';
+// 已由后端直接返回可访问 URL（public_url / url），不再在前端单独获取预签名链接
 
 /**
  * 通用图片预览组件
@@ -18,39 +19,26 @@ export function ImagePreviewGallery({ images, maxThumbnails = 3, size = 'sm', cl
   const [loadingMap, setLoadingMap] = useState({});
   const [errorMap, setErrorMap] = useState({});
 
-  useEffect(() => {
-    let cancelled = false;
-    async function resolveAll() {
-      const tasks = (images || []).map(async (raw) => {
-        if (typeof raw === 'string') {
-          return { url: raw };
-        }
-        const base = raw || {};
-        // 若已有明确的url(可能是公开)直接使用
-        if (base.url || base.public_url) {
-          return { url: base.url || base.public_url, original_name: base.original_name };
-        }
-        if (base.file_path) {
-          try {
-            setLoadingMap(m => ({ ...m, [base.file_path]: true }));
-            const signed = await getPresignedReadUrl(base.file_path, 600);
-            if (cancelled) return null;
-            return { url: signed, original_name: base.original_name, file_path: base.file_path };
-          } catch (e) {
-            if (!cancelled) setErrorMap(err => ({ ...err, [base.file_path]: e.message || '加载失败' }));
-            return null;
-          } finally {
-            if (!cancelled) setLoadingMap(m => ({ ...m, [base.file_path]: false }));
-          }
-        }
-        return null;
-      });
-      const res = (await Promise.all(tasks)).filter(Boolean).filter(i => i.url);
-      if (!cancelled) setResolved(res);
+  const resolveImage = useCallback(async (raw, cancelledRef) => {
+    const base = typeof raw === 'string' ? { url: raw } : (raw || {});
+    if (cancelledRef.current) return null;
+    if (base.url || base.public_url) {
+      return { url: base.url || base.public_url, file_path: base.file_path, original_name: base.original_name };
     }
-    resolveAll();
-    return () => { cancelled = true; };
-  }, [JSON.stringify(images)]);
+    // 仍然兼容旧结构: 只有 file_path 但无 URL（则直接忽略，避免额外网络开销）
+    return null;
+  }, []);
+
+  useEffect(() => {
+    const cancelledRef = { current: false };
+    (async () => {
+      const arr = Array.isArray(images) ? images : [];
+      const tasks = arr.map(item => resolveImage(item, cancelledRef));
+      const res = (await Promise.all(tasks)).filter(Boolean).filter(i => i.url);
+      if (!cancelledRef.current) setResolved(res);
+    })();
+    return () => { cancelledRef.current = true; };
+  }, [images, resolveImage]);
 
   const norm = resolved;
 
@@ -72,9 +60,9 @@ export function ImagePreviewGallery({ images, maxThumbnails = 3, size = 'sm', cl
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {toDisplay.map((img, idx) => (
+    {toDisplay.map((img, idx) => (
         <button
-          key={idx}
+      key={img.file_path || img.url || idx}
           type="button"
             className={`relative border rounded-md overflow-hidden bg-gray-50 hover:ring-2 hover:ring-green-500 transition ${thumbSizeClass}`}
           onClick={() => setLightboxIndex(idx)}
@@ -142,3 +130,10 @@ export function ImagePreviewGallery({ images, maxThumbnails = 3, size = 'sm', cl
     </div>
   );
 }
+
+ImagePreviewGallery.propTypes = {
+  images: PropTypes.any,
+  maxThumbnails: PropTypes.number,
+  size: PropTypes.oneOf(['sm','md']),
+  className: PropTypes.string
+};

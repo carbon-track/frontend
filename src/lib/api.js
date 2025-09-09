@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 // API base URL - 可以通过环境变量配置
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
@@ -50,7 +51,18 @@ api.interceptors.response.use(
       // 统一跳到新版登录页路径
       window.location.href = '/auth/login';
     }
-    
+    // 将后端返回的 request_id 暴露到错误对象（便于 UI 显示）
+    try {
+      const rid = error.response?.data?.request_id || error.response?.headers['x-request-id'];
+      if (rid) {
+        error.request_id = rid; // 自定义附加
+        // 统一弹出提示，引导用户反馈 request_id（避免重复弹出：仅首次或非 401/403）
+        if (!error.__rid_notified && error.response?.status !== 401) {
+          error.__rid_notified = true;
+          toast.error(`请求出错 (RID: ${rid})，请联系管理员并提供该编号。`);
+        }
+      }
+    } catch (_) {}
     return Promise.reject(error);
   }
 );
