@@ -1,4 +1,5 @@
 import React from 'react';
+import { ImagePreviewGallery } from '../common/ImagePreviewGallery';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatNumber, formatDateSafe } from '../../lib/utils';
 import { AlertCircle, CheckCircle, Clock, XCircle, Eye } from 'lucide-react';
@@ -40,6 +41,12 @@ export function ActivityTable({ activities, onRowClick }) {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
+            <th
+              scope="col"
+              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t('activities.table.images', 'Images')}
+            </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -87,6 +94,9 @@ export function ActivityTable({ activities, onRowClick }) {
         <tbody className="bg-white divide-y divide-gray-200">
           {activities.map((activity) => (
             <tr key={activity.id} className="hover:bg-gray-50">
+              <td className="px-4 py-4 whitespace-nowrap align-top">
+                <ImagePreviewGallery images={activity.images || []} maxThumbnails={1} />
+              </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">
                   {getName(activity)}

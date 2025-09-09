@@ -50,7 +50,9 @@
     "confirmPasswordPlaceholder": "Re-enter password",
     "realNamePlaceholder": "Enter your real name",
     "classNamePlaceholder": "Enter class name",
-    "selectSchool": "Select a school",
+  "selectSchool": "Select a school",
+  "schoolPlaceholder": "Enter to create a new school (optional)",
+  "newSchoolNote": "You can either select an existing school or enter a new one which will be created on registration.",
     "rememberMe": "Remember me",
     "forgotPassword": "Forgot password",
     "sendResetEmail": "Send reset email",
@@ -790,6 +792,13 @@
       "pointsHighToLow": "Points: High to Low",
       "pointsLowToHigh": "Points: Low to High"
     }
+  },
+  "images": {
+    "none": "No images",
+    "clickToPreview": "Click to preview",
+    "prev": "Previous",
+    "next": "Next",
+    "counter": "{{current}} / {{total}}"
   },
   "validation": {
     "required": "This field is required",

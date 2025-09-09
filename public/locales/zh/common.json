@@ -92,6 +92,13 @@
       "communityDescription": "活跃社区，共同成长"
     }
   },
+  "images": {
+    "none": "无图片",
+    "clickToPreview": "点击预览",
+    "prev": "上一张",
+    "next": "下一张",
+    "counter": "{{current}} / {{total}}"
+  },
   "auth": {
     "signIn": "登录",
     "signUp": "注册",
@@ -115,7 +122,9 @@
     "confirmPasswordPlaceholder": "请再次输入密码",
     "realNamePlaceholder": "请输入真实姓名",
     "classNamePlaceholder": "请输入班级名称",
-    "selectSchool": "请选择学校",
+  "selectSchool": "请选择学校",
+  "schoolPlaceholder": "输入以创建新学校（可选）",
+  "newSchoolNote": "可选择已有学校或直接输入新名称，提交注册时自动创建。",
     "rememberMe": "记住我",
     "forgotPassword": "忘记密码",
     "sendResetEmail": "发送重置邮件",

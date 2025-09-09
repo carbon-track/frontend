@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ImagePreviewGallery } from '../common/ImagePreviewGallery';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatNumber, formatDateSafe } from '../../lib/utils';
@@ -140,6 +141,7 @@ export function ActivityReview() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.activities.table.images', 'Images')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.activities.table.user')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.activities.table.activity')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.activities.table.data')}</th>
@@ -153,6 +155,9 @@ export function ActivityReview() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {activities.map((activity) => (
                   <tr key={activity.id}>
+                    <td className="px-4 py-4 whitespace-nowrap align-top">
+                      <ImagePreviewGallery images={activity.images || []} maxThumbnails={1} />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{activity.user_username}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{activity.activity_name}</div>

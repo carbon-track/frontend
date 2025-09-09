@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, CalendarDays, Info, Image as ImageIcon, MessageSquare, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { ImagePreviewGallery } from '../common/ImagePreviewGallery';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatNumber, formatDateSafe } from '../../lib/utils';
 import { Button } from '../ui/Button';
@@ -15,8 +16,9 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
   const getUnit = (a) => a.activity_unit || a.unit || '';
   const images = Array.isArray(activity.images) ? activity.images
     : (Array.isArray(activity.proof_images) ? activity.proof_images : []);
-  const normalizedImages = images.map((img) => typeof img === 'string' ? img : (img.public_url || img.url || ''))
-    .filter(Boolean);
+  const normalizedImages = images
+    .map((img) => typeof img === 'string' ? { url: img } : ({ url: img.public_url || img.url || img.file_path || '', original_name: img.original_name }))
+    .filter(i => i.url);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -118,17 +120,7 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
                 <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
                   <ImageIcon className="h-4 w-4 mr-2" />{t('activities.detail.proofImages')}
                 </h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {normalizedImages.map((image, index) => (
-                    <a key={index} href={image} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={image}
-                        alt={`${getName(activity)} proof ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg shadow-sm"
-                      />
-                    </a>
-                  ))}
-                </div>
+                <ImagePreviewGallery images={normalizedImages} maxThumbnails={6} size="md" />
               </div>
             )}
 

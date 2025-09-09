@@ -20,6 +20,7 @@ export function RegisterForm() {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [schools, setSchools] = useState([]);
+  const [customSchool, setCustomSchool] = useState('');
   const turnstileRef = useRef(null);
   const [turnstileToken, setTurnstileToken] = useState('');
 
@@ -67,6 +68,8 @@ export function RegisterForm() {
       if (data.schoolId) {
         const sid = parseInt(data.schoolId, 10);
         if (!Number.isNaN(sid)) payload.school_id = sid;
+      } else if (customSchool.trim()) {
+        payload.new_school_name = customSchool.trim();
       }
       // class_name 已废弃
 
@@ -178,16 +181,17 @@ export function RegisterForm() {
 
                 {/* real_name 字段已移除 */}
 
-                {/* 学校（可选） */}
+                {/* 学校（可选，可选择或自定义新学校） */}
                 <div>
                   <label htmlFor="schoolId" className="block text-sm font-medium text-gray-700">
                     {t('auth.school')}（{t('common.optional') || '可选'}）
                   </label>
-                  <div className="mt-1">
+                  <div className="mt-1 space-y-2">
                     <select
                       id="schoolId"
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                       {...register('schoolId')}
+                      onChange={(e)=>{ if(e.target.value) setCustomSchool(''); }}
                     >
                       <option value="">{t('auth.selectSchool')}</option>
                       {schools.map((school) => (
@@ -196,8 +200,23 @@ export function RegisterForm() {
                         </option>
                       ))}
                     </select>
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        placeholder={t('auth.schoolPlaceholder', '输入以创建新学校 (可选)')}
+                        value={customSchool}
+                        onChange={(e)=>{ setCustomSchool(e.target.value); if(e.target.value) { /* 清空选择 */ } }}
+                        disabled={!!watch('schoolId')}
+                      />
+                      {watch('schoolId') && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">{t('common.selected','Selected')}</span>
+                      )}
+                    </div>
                     <p className="mt-1 text-xs text-gray-500">
                       {t('auth.schoolOptionalHint')}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {t('auth.newSchoolNote')}
                     </p>
                   </div>
                 </div>

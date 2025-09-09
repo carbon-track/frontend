@@ -188,11 +188,8 @@ export const validationRules = {
   
   password: {
     required: '密码不能为空',
-    minLength: { value: 8, message: '密码至少8个字符' },
-    pattern: {
-      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      message: '密码必须包含大小写字母和数字'
-    }
+    minLength: { value: 8, message: '密码至少8个字符' }
+    // 已移除强制大小写+数字组合要求
   },
   
   realName: {
