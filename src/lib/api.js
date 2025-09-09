@@ -156,6 +156,8 @@ export const carbonAPI = {
 export const productAPI = {
   // 获取产品列表
   getProducts: (params = {}) => api.get('/products', { params }),
+  // 获取产品分类（用于后台过滤）
+  getCategories: (params = {}) => api.get('/products/categories', { params }),
   
   // 获取单个产品详情
   getProduct: (id) => api.get(`/products/${id}`),
@@ -228,11 +230,18 @@ export const adminAPI = {
   getLogs: (params = {}) => api.get('/admin/logs', { params }),
   
   // 碳减排活动管理
+  // 兼容旧组件调用名称 getActivities / reviewActivity
+  getActivities: (params = {}) => api.get('/admin/carbon-activities', { params }),
   getActivitiesForAdmin: (params = {}) => api.get('/admin/carbon-activities', { params }),
+  // 活动记录（用户提交的碳减排记录，用于审核）多路由别名任选其一
+  getActivityRecords: (params = {}) => api.get('/admin/activities', { params }),
   createActivity: (data) => api.post('/admin/carbon-activities', data),
   updateActivity: (id, data) => api.put(`/admin/carbon-activities/${id}`, data),
   deleteActivity: (id) => api.delete(`/admin/carbon-activities/${id}`),
   restoreActivity: (id) => api.post(`/admin/carbon-activities/${id}/restore`),
+  // 后端实际审核路由: /admin/activities/{id}/review
+  // 为兼容旧路径, 如需可在后端加 alias; 这里直接指向正确路由
+  reviewActivity: (id, data) => api.put(`/admin/activities/${id}/review`, data),
   getActivityStatistics: (id = null) => {
     const url = id ? `/admin/carbon-activities/${id}/statistics` : '/admin/carbon-activities/statistics';
     return api.get(url);
@@ -244,6 +253,12 @@ export const adminAPI = {
   updateSchool: (id, data) => api.put(`/admin/schools/${id}`, data),
   deleteSchool: (id) => api.delete(`/admin/schools/${id}`),
   
+  // 产品管理（供后台 ProductManagement 使用）
+  getProducts: (params = {}) => api.get('/admin/products', { params }),
+  createProduct: (data) => api.post('/admin/products', data),
+  updateProduct: (id, data) => api.put(`/admin/products/${id}`, data),
+  deleteProduct: (id) => api.delete(`/admin/products/${id}`),
+
   // 交易审核（使用统一的审核接口）
   reviewTransaction: (id, data) => api.put(`/carbon-track/transactions/${id}`, data),
   

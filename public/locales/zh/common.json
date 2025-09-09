@@ -687,8 +687,6 @@
       "noUsersFound": "未找到用户",
       "tryDifferentFilters": "请尝试修改筛选条件",
       "confirmToggleStatus": "确定将用户 {{username}} 状态切换为 {{to}} 吗？",
-      "disable": "禁用",
-      "enable": "启用",
       "promptAdjustPoints": "为用户 {{username}} 调整积分（正数增加，负数扣减）：",
       "promptAdjustReason": "请输入调整原因（可选）",
       "invalidDelta": "请输入非零的有效数字",
@@ -701,6 +699,33 @@
         "status": "状态",
         "points": "积分",
         "actions": "操作"
+      }
+    },
+    "activities": {
+      "title": "活动管理",
+      "description": "审核并管理用户活动记录",
+      "review": "审核活动",
+      "approve": "通过",
+      "reject": "驳回",
+      "approveSuccess": "活动已通过",
+      "rejectSuccess": "活动已驳回",
+      "reviewSuccess": "审核处理成功",
+      "reviewFailed": "审核处理失败",
+      "confirmApprove": "确认通过该活动?",
+      "promptRejectionReason": "请输入驳回原因(可留空)：",
+      "noActivitiesFound": "当前筛选条件下没有活动",
+      "tryDifferentFilters": "尝试调整筛选条件或搜索词",
+      "searchPlaceholder": "按用户或活动名称搜索...",
+      "status": "状态",
+      "table": {
+        "images": "图片",
+        "user": "用户",
+        "activity": "活动",
+        "data": "数据",
+        "carbonSaved": "减排量",
+        "points": "积分",
+        "status": "状态",
+        "date": "日期"
       }
     },
     "products": {
@@ -721,15 +746,6 @@
       "cancelled": "已取消",
       "approve": "通过",
       "reject": "拒绝"
-    },
-    "activities": {
-      "title": "活动管理",
-      "description": "审核和管理用户活动",
-      "review": "审核活动",
-      "approve": "通过",
-      "reject": "拒绝",
-      "approveSuccess": "活动审核通过成功",
-      "rejectSuccess": "活动审核拒绝成功"
     },
     "audit": {
       "title": "审计日志",

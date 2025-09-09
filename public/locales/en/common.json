@@ -656,7 +656,25 @@
       "approve": "Approve",
       "reject": "Reject",
       "approveSuccess": "Activity approved successfully",
-      "rejectSuccess": "Activity rejected successfully"
+      "rejectSuccess": "Activity rejected successfully",
+      "reviewSuccess": "Review processed successfully",
+      "reviewFailed": "Failed to process review",
+      "confirmApprove": "Approve this activity?",
+      "promptRejectionReason": "Enter rejection reason (optional):",
+      "noActivitiesFound": "No activities match current filters",
+      "tryDifferentFilters": "Try adjusting filters or search terms",
+      "searchPlaceholder": "Search by user or activity name...",
+      "status": "Status",
+      "table": {
+        "images": "Images",
+        "user": "User",
+        "activity": "Activity",
+        "data": "Data",
+        "carbonSaved": "Carbon Saved",
+        "points": "Points",
+        "status": "Status",
+        "date": "Date"
+      }
     },
     "audit": {
       "title": "Audit Logs",

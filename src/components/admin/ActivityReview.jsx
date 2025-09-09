@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ImagePreviewGallery } from '../common/ImagePreviewGallery';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -24,12 +24,59 @@ export function ActivityReview() {
     sort: 'created_at_asc' // Oldest first for review
   });
   const [selectedActivity, setSelectedActivity] = useState(null);
+  // 自动刷新控制
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshIntervalMs, setRefreshIntervalMs] = useState(15000); // 15s 默认
 
-  const { data, isLoading, error, isFetching } = useQuery(
+  // 标记是否已完成首次加载
+  const initialLoadedRef = useRef(false);
+
+  // 使用碳减排记录审核接口（多路由别名: /admin/activities | /admin/carbon-records | /admin/carbon-activities/pending）
+  const { data, isLoading, error, isFetching, refetch } = useQuery(
     ['adminActivities', filters],
-    () => adminAPI.getActivities(filters),
-    { keepPreviousData: true }
+    () => adminAPI.getActivityRecords(filters).then(r => r.data),
+    {
+      keepPreviousData: true,
+      refetchInterval: autoRefresh && !selectedActivity ? refreshIntervalMs : false,
+      refetchIntervalInBackground: true
+    }
   );
+
+  useEffect(() => {
+    if (!isLoading && !error) {
+      initialLoadedRef.current = true;
+    }
+  }, [isLoading, error]);
+
+  // 后端记录列表结构：{ success, data: [ { record... } ], pagination: {...} }
+  // 兼容旧结构：{ data: { activities: [...] } } 或直接数组。
+  const rawRecords = data?.data?.activities || data?.data?.records || data?.data || data?.activities || [];
+  const recordsArray = Array.isArray(rawRecords) ? rawRecords : [];
+
+  // 归一化：将 carbon_records 与 carbon_activities 定义混合的不同字段统一到渲染层字段
+  const normalizedActivities = recordsArray.map((item) => {
+    // 判断是“记录”还是“活动定义”
+    const isRecord = 'status' in item && ('carbon_saved' in item || 'points_earned' in item || 'user_id' in item);
+    const username = item.user_username || item.username || item.user_name || item.user || '-';
+    const activityName = item.activity_name || item.activity_name_zh || item.activity_name_en || item.combined_name || item.name_zh || item.name_en || t('activities.unknownActivity');
+    const categoryRaw = item.activity_category || item.category || 'unknown';
+    const unitRaw = item.activity_unit || item.unit || '';
+    return {
+      id: item.id,
+      images: item.images || [],
+      user_username: username,
+      activity_name: activityName,
+      activity_category: categoryRaw || 'unknown',
+      activity_unit: unitRaw || '-',
+      data_value: item.data_value || item.amount || item.data || 0,
+      carbon_saved: item.carbon_saved || 0,
+      points_earned: item.points_earned || 0,
+      status: item.status || (isRecord ? 'pending' : (item.is_active ? 'approved' : 'pending')),
+      created_at: item.created_at || item.date || item.updated_at || null,
+    };
+  });
+
+  const pagination = data?.data?.pagination || data?.pagination || { page: filters.page, limit: filters.limit, total: normalizedActivities.length, pages: 1 };
 
   const reviewActivityMutation = useMutation(
     ({ id, status, admin_notes }) => adminAPI.reviewActivity(id, { status, admin_notes }),
@@ -70,9 +117,6 @@ export function ActivityReview() {
       reviewActivityMutation.mutate({ id: activityId, status: 'rejected', admin_notes: reason });
     }
   };
-
-  const activities = data?.data?.data || [];
-  const pagination = data?.data?.pagination || {};
 
   return (
     <div className="space-y-6">
@@ -118,10 +162,39 @@ export function ActivityReview() {
               <option value="created_at_desc">{t('common.sort.newest')}</option>
             </select>
           </div>
+          <div className="flex flex-col space-y-2 md:col-span-3 lg:col-span-1">
+            <label className="flex items-center text-sm font-medium text-gray-700 space-x-2">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+              />
+              <span>{t('common.autoRefresh') || 'Auto Refresh'}</span>
+            </label>
+            {autoRefresh && (
+              <div className="flex items-center space-x-2">
+                <select
+                  value={refreshIntervalMs}
+                  onChange={(e) => setRefreshIntervalMs(parseInt(e.target.value, 10))}
+                  className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value={5000}>5s</option>
+                  <option value={10000}>10s</option>
+                  <option value={15000}>15s</option>
+                  <option value={30000}>30s</option>
+                  <option value={60000}>60s</option>
+                </select>
+                <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+                  {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : t('common.refreshNow') || 'Refresh'}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {isLoading || isFetching ? (
+      {(!initialLoadedRef.current && isLoading) ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-green-500" />
         </div>
@@ -130,14 +203,19 @@ export function ActivityReview() {
           <AlertTitle>{t('common.error')}</AlertTitle>
           <AlertDescription>{t('errors.loadFailed')}</AlertDescription>
         </Alert>
-      ) : activities.length === 0 ? (
+  ) : normalizedActivities.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-lg shadow-sm border">
           <h3 className="text-xl font-semibold">{t('admin.activities.noActivitiesFound')}</h3>
           <p className="text-muted-foreground mt-2">{t('admin.activities.tryDifferentFilters')}</p>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto bg-white rounded-lg shadow-sm border">
+          <div className="overflow-x-auto bg-white rounded-lg shadow-sm border relative">
+            {initialLoadedRef.current && isFetching && (
+              <div className="absolute top-2 right-2 flex items-center text-xs text-gray-500">
+                <Loader2 className="h-3 w-3 animate-spin mr-1" /> {t('common.loading')}
+              </div>
+            )}
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -153,7 +231,7 @@ export function ActivityReview() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {activities.map((activity) => (
+                {normalizedActivities.map((activity) => (
                   <tr key={activity.id}>
                     <td className="px-4 py-4 whitespace-nowrap align-top">
                       <ImagePreviewGallery images={activity.images || []} maxThumbnails={1} />
@@ -205,11 +283,13 @@ export function ActivityReview() {
             </table>
           </div>
           <Pagination
-            currentPage={pagination.current_page}
-            totalPages={pagination.total_pages}
+            // 后端字段: page, pages, limit, total
+            // 兼容旧字段: current_page, total_pages, per_page, total_items
+            currentPage={pagination.page || pagination.current_page || 1}
+            totalPages={pagination.pages || pagination.total_pages || 1}
             onPageChange={handlePageChange}
-            itemsPerPage={pagination.per_page}
-            totalItems={pagination.total_items}
+            itemsPerPage={pagination.limit || pagination.per_page || filters.limit}
+            totalItems={pagination.total || pagination.total_items || normalizedActivities.length}
           />
         </>
       )}

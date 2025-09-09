@@ -30,11 +30,11 @@ export function ProductManagement() {
 
   const { data, isLoading, error, isFetching } = useQuery(
     ['adminProducts', filters],
-    () => adminAPI.getProducts(filters),
+    () => adminAPI.getProducts(filters).then(r => r.data),
     { keepPreviousData: true }
   );
 
-  const { data: categoriesData } = useQuery('productCategories', () => productAPI.getCategories());
+  const { data: categoriesData } = useQuery('productCategories', () => productAPI.getCategories().then(r => r.data));
 
   const createProductMutation = useMutation(
     (newProduct) => adminAPI.createProduct(newProduct),
@@ -105,10 +105,12 @@ export function ProductManagement() {
     }
   };
 
-  const products = data?.data?.data || [];
-  const pagination = data?.data?.pagination || {};
-  // 后端返回 [{ category, product_count }]
-  const categories = (categoriesData?.data?.data || []).map(c => ({ id: c.category, name: c.category }));
+  const productsContainer = data?.data || data;
+  const productsArray = productsContainer?.data || productsContainer?.products || productsContainer || [];
+  const products = Array.isArray(productsArray) ? productsArray : [];
+  const pagination = productsContainer?.pagination || { page: filters.page, limit: filters.limit, total: products.length, pages: 1 };
+  const categoriesRaw = categoriesData?.data || categoriesData?.categories || [];
+  const categories = ((Array.isArray(categoriesRaw?.activities) ? categoriesRaw.activities : categoriesRaw) || []).map(c => ({ id: c.category || c.id || c.name, name: c.category || c.name || c.id }));
 
   // 可选：预取当前页产品图片的签名URL，减少首次渲染闪烁
   useEffect(() => {
