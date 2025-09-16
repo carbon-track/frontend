@@ -14,6 +14,8 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
   const getName = (a) => a.activity_name || a.activity_name_zh || a.activity_name_en || a.activity || '';
   const getCategory = (a) => a.activity_category || a.category || 'unknown';
   const getUnit = (a) => a.activity_unit || a.unit || '';
+  const getDate = (a) => a.activity_date || a.date || a.created_at;
+  const getDescription = (a) => a.description || a.notes || a.note || a.remark || a.comments || '';
   const images = Array.isArray(activity.images) ? activity.images
     : (Array.isArray(activity.proof_images) ? activity.proof_images : []);
   const normalizedImages = images
@@ -78,7 +80,7 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.date')}</p>
-                  <p className="text-gray-900">{formatDateSafe(activity.activity_date, 'yyyy-MM-dd')}</p>
+                  <p className="text-gray-900">{formatDateSafe(getDate(activity), 'yyyy-MM-dd')}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">{t('activities.table.data')}</p>
@@ -94,13 +96,13 @@ export function ActivityDetailModal({ activity, isOpen, onClose }) {
               </div>
             </div>
 
-            {/* 备注 */}
-            {activity.notes && (
+            {/* 描述/备注 */}
+            {getDescription(activity) && (
               <div>
                 <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
                   <MessageSquare className="h-4 w-4 mr-2" />{t('activities.detail.notes')}
                 </h4>
-                <p className="text-gray-700 bg-gray-50 p-3 rounded-md">{activity.notes}</p>
+                <p className="text-gray-700 bg-gray-50 p-3 rounded-md whitespace-pre-wrap break-words">{getDescription(activity)}</p>
               </div>
             )}
 

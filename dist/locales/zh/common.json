@@ -315,6 +315,8 @@
       "notesPlaceholder": "请描述您的具体活动情况（可选）",
       "uploadImage": "上传图片",
       "uploadHint": "可上传最多3张图片作为活动证明，每张不超过5MB",
+  "imageRequired": "请至少选择一张图片作为证明",
+  "fileTooLarge": "文件过大（最大 5MB）",
       "calculating": "计算中...",
       "expectedPoints": "预计积分",
       "calculationResult": "计算结果",

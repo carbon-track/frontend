@@ -10,6 +10,7 @@ export function ActivityTable({ activities, onRowClick }) {
   const getName = (a) => a.activity_name || a.activity_name_zh || a.activity_name_en || a.activity || '';
   const getCategory = (a) => a.activity_category || a.category || 'unknown';
   const getUnit = (a) => a.activity_unit || a.unit || '';
+  const getDescription = (a) => a.description || a.notes || a.note || a.remark || a.comments || '';
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -93,7 +94,8 @@ export function ActivityTable({ activities, onRowClick }) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {activities.map((activity) => (
-            <tr key={activity.id} className="hover:bg-gray-50">
+            <React.Fragment key={activity.id}>
+            <tr className="hover:bg-gray-50">
               <td className="px-4 py-4 whitespace-nowrap align-top">
                 <ImagePreviewGallery images={activity.images || []} maxThumbnails={1} />
               </td>
@@ -136,6 +138,15 @@ export function ActivityTable({ activities, onRowClick }) {
                 </Button>
               </td>
             </tr>
+            {getDescription(activity) && (
+              <tr className="bg-gray-50/50">
+                <td className="px-6 py-2 text-xs text-gray-600" colSpan={8}>
+                  <span className="font-medium mr-2">{t('activities.detail.notes')}:</span>
+                  <span className="whitespace-pre-wrap break-words">{getDescription(activity)}</span>
+                </td>
+              </tr>
+            )}
+            </React.Fragment>
           ))}
         </tbody>
       </table>

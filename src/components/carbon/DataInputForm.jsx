@@ -34,7 +34,7 @@ export function DataInputForm({
   } = useForm({
     defaultValues: {
       activity_date: new Date().toISOString().split('T')[0],
-      notes: ''
+      description: ''
     }
   });
 
@@ -121,7 +121,7 @@ export function DataInputForm({
       activity_id: activity.id || activity.uuid,
       amount: parseFloat(data.data),
       date: data.activity_date,
-      description: data.notes,
+      description: data.description,
       images: (finalImages || []).map(i => ({ url: i.url, file_path: i.file_path, original_name: i.original_name, mime_type: i.mime_type, size: i.size }))
     };
     onSubmit(payload);
@@ -301,6 +301,27 @@ export function DataInputForm({
               {errors.activity_date && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.activity_date.message}
+                </p>
+              )}
+            </div>
+
+            {/* 备注/描述 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FileText className="inline h-4 w-4 mr-1" />
+                {t('activities.form.notes')}
+              </label>
+              <textarea
+                rows={4}
+                placeholder={t('activities.form.notesPlaceholder')}
+                className={`flex w-full rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.description ? 'border-red-500 focus-visible:ring-red-500' : 'border-input ring-offset-background'}`}
+                {...register('description', {
+                  maxLength: { value: 500, message: t('validation.maxLength', { max: 500 }) }
+                })}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.description.message}
                 </p>
               )}
             </div>

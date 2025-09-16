@@ -242,6 +242,8 @@
       "dateRequired": "Activity date is required",
       "uploadImage": "Upload Image",
       "uploadHint": "Optional: Upload a photo as proof of your activity",
+  "imageRequired": "Please upload at least one image as proof",
+  "fileTooLarge": "File is too large (max 5MB)",
       "calculating": "Calculating...",
       "expectedPoints": "Expected Points",
       "calculationResult": "Calculation Result",

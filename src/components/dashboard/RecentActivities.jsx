@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, CheckCircle, XCircle, AlertCircle, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatNumber } from '../../lib/utils';
+import { ActivityDetailModal } from '../activities/ActivityDetailModal';
 
 export function RecentActivities({ activities = [], loading = false, onViewAll }) {
   const { t } = useTranslation();
+  const [selected, setSelected] = useState(null);
+  const [open, setOpen] = useState(false);
 
 
   const getStatusIcon = (status) => {
@@ -158,7 +161,7 @@ export function RecentActivities({ activities = [], loading = false, onViewAll }
                 </div>
                 
                 <div className="flex-shrink-0">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => { setSelected(activity); setOpen(true); }}>
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
@@ -175,6 +178,12 @@ export function RecentActivities({ activities = [], loading = false, onViewAll }
           </div>
         )}
       </CardContent>
+
+      <ActivityDetailModal
+        activity={selected}
+        isOpen={open}
+        onClose={() => { setOpen(false); setSelected(null); }}
+      />
     </Card>
   );
 }
