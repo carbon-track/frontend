@@ -61,6 +61,7 @@ export function ActivityReview() {
     const activityName = item.activity_name || item.activity_name_zh || item.activity_name_en || item.combined_name || item.name_zh || item.name_en || t('activities.unknownActivity');
     const categoryRaw = item.activity_category || item.category || 'unknown';
     const unitRaw = item.activity_unit || item.unit || '';
+    const description = item.description || item.notes || item.note || item.remark || item.comments || '';
     return {
       id: item.id,
       images: item.images || [],
@@ -73,6 +74,7 @@ export function ActivityReview() {
       points_earned: item.points_earned || 0,
       status: item.status || (isRecord ? 'pending' : (item.is_active ? 'approved' : 'pending')),
       created_at: item.created_at || item.date || item.updated_at || null,
+      description,
     };
   });
 
@@ -240,6 +242,12 @@ export function ActivityReview() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{activity.activity_name}</div>
                       <div className="text-sm text-gray-500">{t(`activities.categories.${activity.activity_category}`, activity.activity_category)}</div>
+                      {activity.description && (
+                        <div className="mt-1 text-xs text-gray-600 flex items-start max-w-[36rem]">
+                          <MessageSquare className="h-3 w-3 mr-1 mt-[2px] text-gray-500" />
+                          <span className="truncate" title={activity.description}>{activity.description}</span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatNumber(activity.data_value)} {t(`units.${activity.activity_unit}`, activity.activity_unit)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatNumber(activity.carbon_saved)} kg CO2e</td>
