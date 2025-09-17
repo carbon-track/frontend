@@ -44,25 +44,31 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      // Token过期或无效，清除本地存储并跳转到登录页
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_info');
-      // 统一跳到新版登录页路径
-      window.location.href = '/auth/login';
+    const status = error.response?.status;
+    const requestUrl = error.config?.url ?? '';
+
+    if (status === 401) {
+      const isLoginRequest = requestUrl.includes('/auth/login');
+      if (!isLoginRequest) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_info');
+        if (window.location.pathname !== '/auth/login') {
+          window.location.href = '/auth/login';
+        }
+      }
     }
-    // 将后端返回的 request_id 暴露到错误对象（便于 UI 显示）
+
     try {
       const rid = error.response?.data?.request_id || error.response?.headers['x-request-id'];
       if (rid) {
-        error.request_id = rid; // 自定义附加
-        // 统一弹出提示，引导用户反馈 request_id（避免重复弹出：仅首次或非 401/403）
-        if (!error.__rid_notified && error.response?.status !== 401) {
+        error.request_id = rid;
+        if (!error.__rid_notified && status !== 401) {
           error.__rid_notified = true;
-          toast.error(`请求出错 (RID: ${rid})，请联系管理员并提供该编号。`);
+          toast.error(`请求失败 (ReqID: ${rid})，请联系管理员并提供该编号。`);
         }
       }
     } catch (_) {}
+
     return Promise.reject(error);
   }
 );

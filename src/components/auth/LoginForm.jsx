@@ -26,6 +26,18 @@ export function LoginForm() {
   } = useForm();
   const validationRules = getValidationRules();
 
+  const resolveErrorMessage = (payload, fallback = t('auth.loginFailed')) => {
+    if (!payload || typeof payload !== 'object') {
+      return fallback;
+    }
+    const message = payload.message || payload.error || fallback;
+    const code = payload.code;
+    if (code) {
+      return t(`auth.errors.${code}`, { defaultValue: message });
+    }
+    return message;
+  };
+
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError('');
@@ -41,11 +53,13 @@ export function LoginForm() {
         const returnUrl = getReturnUrl();
         navigate(returnUrl);
       } else {
-        setError(result.message || t('auth.loginFailed'));
+        setError(resolveErrorMessage(result));
       }
     } catch (err) {
-      setError(err.message || t('auth.loginFailed'));
-      // 失败时重置（容错）
+      const responseData = err.response?.data;
+      const fallbackMessage = err.response ? t('auth.loginFailed') : t('errors.network');
+      setError(resolveErrorMessage(responseData, fallbackMessage));
+      // 失败时重置，便于再次尝试
       turnstileRef.current?.reset?.();
     } finally {
       setIsLoading(false);
