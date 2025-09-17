@@ -223,6 +223,17 @@ export const avatarAPI = {
   selectAvatar: (avatarId) => api.put('/users/me/avatar', { avatar_id: avatarId }),
 };
 
+export const badgeAPI = {
+  // 获取平台成就徽章列表
+  list: (params = {}) => api.get('/badges', { params }),
+
+  // 获取当前用户的徽章
+  myBadges: (params = {}) => api.get('/users/me/badges', { params }),
+
+  // 手动触发自动授予流程
+  triggerAuto: (data = {}) => api.post('/badges/auto-trigger', data),
+};
+
 export const profileAPI = {
   // 更新用户资料
   updateProfile: (data) => api.put('/users/me/profile', data),
@@ -271,6 +282,15 @@ export const adminAPI = {
   updateProduct: (id, data) => api.put(`/admin/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),
 
+  // 头像管理
+  getAvatars: (params = {}) => api.get('/admin/avatars', { params }),
+  createAvatar: (data) => api.post('/admin/avatars', data),
+  updateAvatar: (id, data) => api.put(`/admin/avatars/${id}`, data),
+  deleteAvatar: (id) => api.delete(`/admin/avatars/${id}`),
+  restoreAvatar: (id) => api.post(`/admin/avatars/${id}/restore`),
+  setDefaultAvatar: (id) => api.put(`/admin/avatars/${id}/set-default`),
+  getAvatarUsageStats: () => api.get('/admin/avatars/usage-stats'),
+
   // 交易审核（使用统一的审核接口）
   reviewTransaction: (id, data) => api.put(`/carbon-track/transactions/${id}`, data),
   
@@ -282,6 +302,16 @@ export const adminAPI = {
   
   // 审核兑换记录（管理员）
   reviewExchange: (id, data) => api.put(`/admin/exchanges/${id}`, data),
+
+  // 成就徽章管理
+  getBadges: (params = {}) => api.get('/admin/badges', { params }),
+  getBadge: (id) => api.get(`/admin/badges/${id}`),
+  createBadge: (data) => api.post('/admin/badges', data),
+  updateBadge: (id, data) => api.put(`/admin/badges/${id}`, data),
+  awardBadge: (id, data) => api.post(`/admin/badges/${id}/award`, data),
+  revokeBadge: (id, data) => api.post(`/admin/badges/${id}/revoke`, data),
+  triggerBadgeAuto: (data = {}) => api.post('/admin/badges/auto-trigger', data),
+
 };
 
 // 工具函数

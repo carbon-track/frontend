@@ -20,6 +20,8 @@ const OnboardingPage = React.lazy(() => import('../pages/OnboardingPage'));
 const AdminDashboardPage = React.lazy(() => import('../pages/admin/Dashboard'));
 const AdminUsersPage = React.lazy(() => import('../pages/admin/Users'));
 const AdminActivitiesPage = React.lazy(() => import('../pages/admin/Activities'));
+const AdminBadgesPage = React.lazy(() => import('../pages/admin/Badges'));
+const AdminAvatarsPage = React.lazy(() => import('../pages/admin/Avatars'));
 const AdminProductsPage = React.lazy(() => import('../pages/admin/Products'));
 const AdminExchangesPage = React.lazy(() => import('../pages/admin/Exchanges'));
 const AdminBroadcastPage = React.lazy(() => import('../pages/admin/Broadcast'));
@@ -67,6 +69,8 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <React.Suspense fallback={<LoadingSpinner />}><AdminDashboardPage /></React.Suspense> },
       { path: 'users', element: <React.Suspense fallback={<LoadingSpinner />}><AdminUsersPage /></React.Suspense> },
       { path: 'activities', element: <React.Suspense fallback={<LoadingSpinner />}><AdminActivitiesPage /></React.Suspense> },
+      { path: 'badges', element: <React.Suspense fallback={<LoadingSpinner />}><AdminBadgesPage /></React.Suspense> },
+      { path: 'avatars', element: <React.Suspense fallback={<LoadingSpinner />}><AdminAvatarsPage /></React.Suspense> },
       { path: 'products', element: <React.Suspense fallback={<LoadingSpinner />}><AdminProductsPage /></React.Suspense> },
       { path: 'exchanges', element: <React.Suspense fallback={<LoadingSpinner />}><AdminExchangesPage /></React.Suspense> },
       { path: 'broadcast', element: <React.Suspense fallback={<LoadingSpinner />}><AdminBroadcastPage /></React.Suspense> },

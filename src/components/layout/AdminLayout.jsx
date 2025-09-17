@@ -12,6 +12,8 @@ export default function AdminLayout() {
     { to: '/admin/users', label: t('admin.tabs.users') },
     { to: '/admin/activities', label: t('admin.tabs.activities') },
     { to: '/admin/products', label: t('admin.tabs.products') },
+    { to: '/admin/badges', label: t('admin.tabs.badges', '徽章管理') },
+    { to: '/admin/avatars', label: t('admin.tabs.avatars', '头像管理') },
     { to: '/admin/exchanges', label: t('admin.tabs.exchanges') },
     { to: '/admin/broadcast', label: t('admin.tabs.broadcast') },
     { to: '/admin/system-logs', label: t('admin.tabs.systemLogs') },

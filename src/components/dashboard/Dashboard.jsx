@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Leaf, Award, TrendingUp, Users } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { carbonAPI } from '../../lib/api';
+import { carbonAPI, badgeAPI } from '../../lib/api';
 import { checkAuthStatus } from '../../lib/auth';
 import { StatsCard } from './StatsCard';
 import { ActivityChart } from './ActivityChart';
 import { RecentActivities } from './RecentActivities';
 import { QuickActions } from './QuickActions';
+import AchievementBadges from './AchievementBadges';
 import { Alert, AlertDescription } from '../ui/Alert';
+import { toast } from 'react-hot-toast';
 
 export function Dashboard() {
   const { t } = useTranslation();
@@ -15,20 +17,25 @@ export function Dashboard() {
   const [stats, setStats] = useState({});
   const [chartData, setChartData] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [badges, setBadges] = useState([]);
+  const [userBadges, setUserBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const didFetchRef = useRef(false);
+  const isAdmin = Boolean(user?.is_admin);
 
   // 先声明，供后续 useEffect 使用，避免 TDZ 报错
+  // 合并数据请求，避免 useEffect 使用时触发 TDZ
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // 并行获取仪表板数据
-      const [statsResponse, chartResponse, activitiesResponse] = await Promise.all([
+
+      const [statsResponse, chartResponse, activitiesResponse, badgesResponse, userBadgesResponse] = await Promise.all([
         carbonAPI.getUserStats(),
         carbonAPI.getChartData({ period: 30 }),
-        carbonAPI.getRecentActivities({ limit: 10 })
+        carbonAPI.getRecentActivities({ limit: 10 }),
+        badgeAPI.list(),
+        badgeAPI.myBadges(),
       ]);
 
       if (statsResponse.data.success) {
@@ -42,12 +49,22 @@ export function Dashboard() {
       if (activitiesResponse.data.success) {
         setRecentActivities(activitiesResponse.data.data);
       }
+
+      if (badgesResponse.data.success) {
+        setBadges(badgesResponse.data.data || []);
+      }
+
+      if (userBadgesResponse.data.success) {
+        setUserBadges(userBadgesResponse.data.data || []);
+      }
     } catch (err) {
       setError(err.message || t('dashboard.loadError'));
     } finally {
       setLoading(false);
     }
   }, [t]);
+
+;
 
   useEffect(() => {
     // 防止在开发模式下 StrictMode 导致的重复执行
@@ -74,6 +91,16 @@ export function Dashboard() {
 
   const handleViewAllActivities = () => {
     window.location.href = '/activities';
+  };
+
+  const handleTriggerBadgeAuto = async () => {
+    try {
+      await badgeAPI.triggerAuto();
+      toast.success(t('dashboard.badgeAutoTriggered', '已触发自动授予流程'));
+      await fetchDashboardData();
+    } catch (err) {
+      toast.error(t('dashboard.badgeAutoTriggerFailed', '触发自动授予失败'));
+    }
   };
 
   if (error) {
@@ -188,8 +215,15 @@ export function Dashboard() {
           onViewAll={handleViewAllActivities}
         />
         
-        {/* 成就和排行榜 */}
+                {/* 成就徽章与排行榜 */}
         <div className="space-y-6">
+          <AchievementBadges
+            badges={badges}
+            userBadges={userBadges}
+            loading={loading}
+            onTriggerAuto={isAdmin ? handleTriggerBadgeAuto : undefined}
+            isAdmin={isAdmin}
+          />
           {/* 本月成就 */}
           {stats.monthly_achievements && stats.monthly_achievements.length > 0 && (
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
