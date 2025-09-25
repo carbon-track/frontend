@@ -168,7 +168,7 @@ export const carbonAPI = {
   getChartData: () => api.get('/users/me/chart-data'),
   
   // 获取最近活动
-  getRecentActivities: () => api.get('/users/me/activities'),
+  getRecentActivities: (params = {}) => api.get('/users/me/activities', { params }),
 };
 
 export const productAPI = {
@@ -347,6 +347,7 @@ export const adminAPI = {
 
   broadcastMessage: (data) => api.post('/admin/messages/broadcast', data),
   getBroadcasts: (params = {}) => api.get('/admin/messages/broadcasts', { params }),
+  searchBroadcastRecipients: (params = {}) => api.get('/admin/messages/broadcast/recipients', { params }),
 
 };
 
