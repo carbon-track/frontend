@@ -75,3 +75,12 @@ VITE_TURNSTILE_SITE_KEY=你的_site_key
 	- 本地快速预览：`pnpm dev` 启动后端与前端，再用管理员账号登录访问 `/admin`。
 	- 若不需要旧版合页式 Admin 页面，可移除未引用的 `src/pages/AdminPage.jsx`（当前路由未使用，保留不影响构建）。
 
+---
+E2E sync test note: updating this file to trigger the monorepo -> repo sync workflow on 2025-10-27.
+E2E sync test trigger 2: retrigger bootstrap PR creation (2025-10-27).
+E2E sync test trigger 3: retrigger after path fixes (2025-10-27).
+\nE2E sync test trigger 3: retrigger after path fixes (2025-10-27).\n
+\nE2E sync test trigger 4: ensure bootstrap clones kept (2025-10-27).\n
+
+E2E manual test trigger by user at 2025-10-27T12:13:25.5966618+08:00
+
