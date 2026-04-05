@@ -2491,6 +2491,7 @@
         "llm": "No LLM calls"
       },
       "recordCount": "{{count}} records",
+      "renderLimitHint": "Showing the newest {{visible}} of {{total}} rows in the table. Narrow filters or export to inspect more.",
       "actions": {
         "expand": "Expand",
         "collapse": "Collapse"
@@ -2530,7 +2531,9 @@
         "llm_status": "LLM status",
         "total_tokens": "Tokens",
         "latency_ms": "Latency (ms)",
-        "response_id": "Response ID"
+        "response_id": "Response ID",
+        "conversation_id": "Conversation ID",
+        "turn_no": "Turn No."
       },
       "drawer": {
         "title": "Request ID: {{id}}",
