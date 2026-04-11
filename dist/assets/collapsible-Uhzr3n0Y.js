@@ -1,1 +1,0 @@
-import{j as l,al as o,am as a}from"./shared-vendor-BTTlFapy.js";function n({...t}){return l.jsx(o,{"data-slot":"collapsible",...t})}function e({...t}){return l.jsx(a,{"data-slot":"collapsible-content",...t})}export{n as C,e as a};
