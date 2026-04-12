@@ -1,1 +1,0 @@
-import{z as e,j as t,T as s}from"./shared-vendor-DDri2wdr.js";import"./i18n-vendor-BUgwyI2-.js";const p=({...r})=>{const{theme:o="system"}=e();return t.jsx(s,{theme:o,className:"toaster group",style:{"--normal-bg":"var(--popover)","--normal-text":"var(--popover-foreground)","--normal-border":"var(--border)"},...r})};export{p as Toaster};
