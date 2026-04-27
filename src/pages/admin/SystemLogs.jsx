@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { RefreshCw, Download, Columns2, X, Loader2 } from 'lucide-react';
+import { RefreshCw, Download, Columns2, X, Loader2, EyeOff } from 'lucide-react';
 
 import { useTranslation } from '../../hooks/useTranslation';
 import { useSystemLogDetail } from '../../hooks/useSystemLogs';
@@ -29,6 +29,17 @@ const AUDIT_COLUMNS = ['id', 'conversation_id', 'request_id', 'actor_type', 'act
 const ERROR_COLUMNS = ['id', 'request_id', 'error_type', 'error_message', 'error_file', 'error_line', 'error_time', 'ops'];
 const LLM_COLUMNS = ['id', 'conversation_id', 'turn_no', 'actor_type', 'actor_id', 'source', 'model', 'llm_status', 'total_tokens', 'latency_ms', 'created_at', 'ops'];
 const TABLE_RENDER_LIMIT = 120;
+const MASKED_VALUE = '[REDACTED]';
+const SENSITIVE_KEY_PATTERNS = [
+  /(^|[_-])(password|passwd|passphrase|pwd|pass|pw)([_-]|$)/i,
+  /(^|[_-])(token|secret|credential|credentials)([_-]|$)/i,
+  /authorization/i,
+  /cookie/i,
+  /(^|[_-])auth([_-]|$)/i,
+  /(^|[_-])(session|sess)([_-]|$)/i,
+  /(^|[_-])jwt([_-].*(secret|token)|$)/i,
+  /(^|[_-])(api|access|private|secret|signing|encryption|webhook|client|r2|s3|aws|cloudflare)[_-]?key([_-]|$)/i
+];
 
 const COLUMN_STORAGE_KEYS = {
   system: 'logCols_system',
@@ -57,6 +68,7 @@ export default function SystemLogsPage() {
   const [activeTypes, setActiveTypes] = useState(['system', 'audit', 'error', 'llm']);
   const [limitPerType, setLimitPerType] = useState(50);
   const [selectedSystemId, setSelectedSystemId] = useState(null);
+  const [showServerMetaSecrets, setShowServerMetaSecrets] = useState(false);
   const [view, setView] = useState('table');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [requestDrawerId, setRequestDrawerId] = useState(null);
@@ -108,6 +120,15 @@ export default function SystemLogsPage() {
   });
 
   const { data: detailData, isLoading: loadingDetail } = useSystemLogDetail(selectedSystemId);
+
+  useEffect(() => {
+    setShowServerMetaSecrets(false);
+  }, [selectedSystemId]);
+
+  const visibleServerMeta = useMemo(() => {
+    const serverMeta = detailData?.data?.server_meta;
+    return showServerMetaSecrets ? serverMeta : maskServerMeta(serverMeta);
+  }, [detailData?.data?.server_meta, showServerMetaSecrets]);
 
   useEffect(() => {
     if (!autoRefresh) return undefined;
@@ -790,9 +811,25 @@ export default function SystemLogsPage() {
                 {detailData.data.server_meta && (
                   <JsonSection
                     title={t('admin.systemLogs.serverMeta')}
-                    value={detailData.data.server_meta}
+                    value={visibleServerMeta}
                     onCopy={copy}
                     copyLabel={t('common.copy')}
+                    headerActions={(
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        {!showServerMetaSecrets && <EyeOff className="h-3.5 w-3.5" />}
+                        <Label htmlFor="server-meta-privacy" className="text-xs">
+                          {showServerMetaSecrets
+                            ? t('admin.systemLogs.privacy.showingSecrets')
+                            : t('admin.systemLogs.privacy.masked')}
+                        </Label>
+                        <Switch
+                          id="server-meta-privacy"
+                          checked={showServerMetaSecrets}
+                          onCheckedChange={setShowServerMetaSecrets}
+                          aria-label={t('admin.systemLogs.privacy.toggle')}
+                        />
+                      </div>
+                    )}
                   />
                 )}
               </div>
@@ -1197,15 +1234,18 @@ function LlmDetail({ log, columnLabel, onRelated, t }) {
   );
 }
 
-function JsonSection({ title, value, onCopy, copyLabel }) {
+function JsonSection({ title, value, onCopy, copyLabel, headerActions }) {
   if (!value) return null;
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">{title}</h3>
-        <Button variant="link" className="h-auto p-0 text-xs" onClick={() => onCopy(value)}>
-          {copyLabel}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {headerActions}
+          <Button variant="link" className="h-auto p-0 text-xs" onClick={() => onCopy(value)}>
+            {copyLabel}
+          </Button>
+        </div>
       </div>
       <JsonTreeViewer value={safeParse(value)} />
     </div>
@@ -1239,6 +1279,40 @@ function safeParse(value) {
   } catch {
     return value;
   }
+}
+
+function isSensitiveKey(key) {
+  const normalized = String(key)
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .toLowerCase();
+  return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+function maskServerMeta(value) {
+  const parsed = safeParse(value);
+  if (typeof parsed === 'string' && parsed.trim() !== '') {
+    return MASKED_VALUE;
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    return parsed;
+  }
+
+  return maskSensitiveJson(parsed);
+}
+
+function maskSensitiveJson(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => maskSensitiveJson(item));
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [
+        key,
+        isSensitiveKey(key) ? MASKED_VALUE : maskSensitiveJson(child)
+      ])
+    );
+  }
+  return value;
 }
 
 function llmCell(log, column) {
