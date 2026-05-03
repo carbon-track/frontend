@@ -1,0 +1,1 @@
+import{z as e,j as t,T as s}from"./shared-vendor-Dy0xj4ka.js";import"./i18n-vendor-PJ-FrfjH.js";const p=({...r})=>{const{theme:o="system"}=e();return t.jsx(s,{theme:o,className:"toaster group",style:{"--normal-bg":"var(--popover)","--normal-text":"var(--popover-foreground)","--normal-border":"var(--border)"},...r})};export{p as Toaster};
