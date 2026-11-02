@@ -71,6 +71,7 @@
           "link": "https://yuanzhengjackyu.com/",
           "linkLabel": "个人主页",
           "categories": [
+            "engineering",
             "design",
             "community"
           ]
@@ -161,6 +162,23 @@
           "bio": "Teresa 立志将 CarbonTrack 这一环保项目升级为可持续发展、具备自主造血能力的新型环保组织，运用商业模式开展推广与创新经营。",
           "categories": [
             "community"
+          ]
+        },
+        {
+          "name": "Brian Ma",
+          "avatar": "/images/about/avatars/brian-notion-avatar.jpg",
+          "bio": "Brian 凭借技术与市场推广方面的经验，为 CarbonTrack 作出贡献，并参与最新的 Chrome 扩展项目。他希望提升公众对污染问题的认识，赋能更多人保护环境。",
+          "categories": [
+            "engineering",
+            "community"
+          ]
+        },
+        {
+          "name": "Isaac Ho",
+          "avatar": "/images/about/avatars/isaac-notion-avatar.jpg",
+          "bio": "Isaac 凭借技术专长，让 CarbonTrack 的产品落地，包括最新的 Chrome 扩展。他希望提升公众对排放监测的认识，让这项技术更普及、更易用。",
+          "categories": [
+            "engineering"
           ]
         },
         {
